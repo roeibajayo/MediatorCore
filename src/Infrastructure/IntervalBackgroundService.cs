@@ -1,19 +1,16 @@
 ﻿using Microsoft.Extensions.Hosting;
-using Microsoft.Extensions.Logging;
 
 namespace MediatorCore.Infrastructure;
 
 internal abstract class IntervalBackgroundService : BackgroundService
 {
-    protected IntervalBackgroundService(ILogger logger, int msInterval)
+    protected IntervalBackgroundService(int msInterval)
     {
         timer = new PeriodicTimer(TimeSpan.FromMilliseconds(msInterval));
-        this.logger = logger;
         Interval = msInterval;
     }
 
     private readonly PeriodicTimer timer;
-    private readonly ILogger logger;
 
     internal int Interval { get; }
 
@@ -21,16 +18,8 @@ internal abstract class IntervalBackgroundService : BackgroundService
     {
         while (!cancellationToken.IsCancellationRequested)
         {
-            await timer.WaitForNextTickAsync(cancellationToken).ConfigureAwait(false);
-
-            try
-            {
-                await OnExecuteAsync(cancellationToken).ConfigureAwait(false);
-            }
-            catch (Exception ex)
-            {
-                logger.LogError(ex, "Background service failed");
-            }
+            await timer.WaitForNextTickAsync(cancellationToken);
+            await OnExecuteAsync(cancellationToken);
         }
     }
 

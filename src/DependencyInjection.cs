@@ -4,14 +4,13 @@ using MediatorCore.RequestTypes.FireAndForget;
 using MediatorCore.RequestTypes.Notification;
 using MediatorCore.RequestTypes.Queue;
 using MediatorCore.RequestTypes.Response;
-using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 
-namespace MediatorCore;
+namespace Microsoft.Extensions.DependencyInjection;
 
 public static class DependencyInjection
 {
-    public static void AddMediatorCore<TMarker>(this IServiceCollection services)
+    public static IServiceCollection AddMediatorCore<TMarker>(this IServiceCollection services)
     {
         services.AddSingleton<IPublisher, MessageBusPublisher>();
         services.AddSingleton<TaskRunnerBackgroundService>();
@@ -22,5 +21,7 @@ public static class DependencyInjection
         services.AddNotificationsHandlers<TMarker>();
         services.AddQueueHandlers<TMarker>();
         services.AddResponseHandlers<TMarker>();
+
+        return services;
     }
 }

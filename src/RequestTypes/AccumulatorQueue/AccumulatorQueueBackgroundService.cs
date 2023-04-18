@@ -1,6 +1,5 @@
 ﻿using MediatorCore.Infrastructure;
 using Microsoft.Extensions.DependencyInjection;
-using Microsoft.Extensions.Logging;
 using System.Collections.Concurrent;
 
 namespace MediatorCore.RequestTypes.AccumulatorQueue;
@@ -19,13 +18,13 @@ internal sealed class AccumulatorQueueBackgroundService<TMessage, TOptions> :
     private readonly IServiceProvider serviceProvider;
     private readonly TOptions options;
 
-    public AccumulatorQueueBackgroundService(IServiceProvider serviceProvider, ILogger<TMessage> logger) :
-        this(serviceProvider, logger, GetOptions())
+    public AccumulatorQueueBackgroundService(IServiceProvider serviceProvider) :
+        this(serviceProvider, GetOptions())
     {
     }
 
-    public AccumulatorQueueBackgroundService(IServiceProvider serviceProvider, ILogger logger, TOptions options) :
-        base(logger, options.MsInterval)
+    public AccumulatorQueueBackgroundService(IServiceProvider serviceProvider, TOptions options) :
+        base(options.MsInterval)
     {
         queue = new ConcurrentQueue<TMessage>();
         this.serviceProvider = serviceProvider;
