@@ -6,6 +6,17 @@
     <Nullable>enable</Nullable>
     <SignAssembly>False</SignAssembly>
     <LangVersion>10</LangVersion>
+    <Version>1.0.0</Version>
+    <Authors>roeibajayo@gmail.com</Authors>
+    <PackageId>MediatorCore</PackageId>
+    <Company>RoeiBajayo</Company>
+    <Title>MediatorCore</Title>
+    <GeneratePackageOnBuild>False</GeneratePackageOnBuild>
+    <PackageProjectUrl>https://github.com/roeibajayo/MediatorCore</PackageProjectUrl>
+    <Description>High-performance yet easy to use mediator pattern and in-process message bus implementation in .NET</Description>
+    <RepositoryUrl>https://github.com/roeibajayo/MediatorCore</RepositoryUrl>
+    <PackageTags>mediator,mediatr,message bus,queue,message queue,rabbitmq</PackageTags>
+    <PackageLicenseExpression>MIT</PackageLicenseExpression>
   </PropertyGroup>
 
   <ItemGroup>
