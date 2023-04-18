@@ -1,0 +1,33 @@
+﻿using MediatorCore.Infrastructure;
+using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Hosting;
+
+namespace MediatorCore.RequestTypes.AccumulatorQueue;
+
+internal static class DependencyInjection
+{
+    internal static void AddAccumulatorQueueHandlers<TMarker>(this IServiceCollection services)
+    {
+        var handlers = AssemblyExtentions.GetAllInheritsFromMarker(typeof(IAccumulatorQueueHandler<,>), typeof(TMarker));
+        foreach (var handler in handlers)
+        {
+            var args = handler.GetInterfaces()
+                .First(x => x.IsGenericType && x.GetGenericTypeDefinition() == typeof(IAccumulatorQueueHandler<,>))
+                .GetGenericArguments();
+
+            var messageType = args[0];
+            var optionsType = args[1];
+
+            var serviceType = typeof(AccumulatorQueueBackgroundService<,>)
+                .MakeGenericType(messageType, optionsType);
+            var serviceInterface = typeof(IQueueBackgroundService<>)
+                .MakeGenericType(messageType);
+            services.AddSingleton(serviceInterface, serviceType);
+            services.AddTransient(s => s.GetRequiredService(serviceInterface) as IHostedService);
+
+            var handlerInterface = typeof(IBaseAccumulatorQueue<>)
+                .MakeGenericType(messageType);
+            services.AddScoped(handlerInterface, handler);
+        }
+    }
+}
