@@ -1,4 +1,4 @@
-# MadiatorCore
+# MediatorCore
 
 [![NuGet](https://img.shields.io/nuget/dt/MediatorCore.svg)](https://www.nuget.org/packages/MediatorCore) 
 [![NuGet](https://img.shields.io/nuget/vpre/MediatorCore.svg)](https://www.nuget.org/packages/MediatorCore)
