@@ -62,22 +62,25 @@ internal sealed class MessageBusPublisher : IPublisher
     private void HandleAccumulatorQueueMessage<TMessage>(TMessage message)
         where TMessage : IAccumulatorQueueMessage
     {
-        var service = serviceProvider.GetService<IQueueBackgroundService<TMessage>>();
-        service.Enqueue(message);
+        var services = serviceProvider.GetServices<IQueueBackgroundService<TMessage>>();
+        foreach (var service in services)
+            service.Enqueue(message);
     }
 
     private void HandleQueueMessage<TMessage>(TMessage message)
         where TMessage : IQueueMessage
     {
-        var service = serviceProvider.GetService<QueueBackgroundService<TMessage>>();
-        service.Enqueue(message);
+        var services = serviceProvider.GetServices<QueueBackgroundService<TMessage>>();
+        foreach (var service in services)
+            service.Enqueue(message);
     }
 
     private void HandleStackMessage<TMessage>(TMessage message)
         where TMessage : IStackMessage
     {
-        var service = serviceProvider.GetService<StackBackgroundService<TMessage>>();
-        service.Push(message);
+        var services = serviceProvider.GetServices<StackBackgroundService<TMessage>>();
+        foreach (var service in services)
+            service.Push(message);
     }
 
     private async Task<TResponse> HandleResponseMessageAsync<TResponse>(IResponseMessage<TResponse> message,

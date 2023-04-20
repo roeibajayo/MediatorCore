@@ -80,8 +80,9 @@ internal class TaskRunnerBackgroundService : BackgroundService
         Task.Run(async () =>
         {
             using var scope = serviceProvider.CreateScope();
-            var handler = scope.ServiceProvider.GetService<IFireAndForgetHandler<TMessage>>();
-            await handler.HandleAsync(message, cancellationToken);
+            var handlers = scope.ServiceProvider.GetServices<IFireAndForgetHandler<TMessage>>();
+            foreach (var handler in handlers)
+                await handler.HandleAsync(message, cancellationToken);
         });
     }
 
