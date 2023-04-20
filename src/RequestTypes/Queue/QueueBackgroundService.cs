@@ -26,7 +26,7 @@ internal sealed class QueueBackgroundService<TMessage> :
     {
         while (!cancellationToken.IsCancellationRequested && running)
         {
-            var messageResult = queue.TryDequeue(cancellationToken);
+            var messageResult = await queue.TryDequeueAsync(cancellationToken);
 
             if (!messageResult.Success)
                 continue;

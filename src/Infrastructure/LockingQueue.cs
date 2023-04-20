@@ -37,17 +37,11 @@ internal sealed class LockingQueue<T> : ConcurrentQueue<T>, IDisposable
         waitingLocker.Release();
     }
 
-    internal new bool TryDequeue(out T? item)
-    {
-        var result = TryDequeueAsync(CancellationToken.None).Result;
-        item = result.Item;
-        return result.Success;
-    }
     internal async Task<(bool Success, T? Item)> TryDequeueAsync(CancellationToken cancellationToken)
     {
         while (running)
         {
-            if (base.TryDequeue(out var item))
+            if (TryDequeue(out var item))
             {
                 return (true, item);
             }

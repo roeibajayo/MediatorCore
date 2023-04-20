@@ -34,7 +34,7 @@ internal class TaskRunnerBackgroundService : IHostedService, IDisposable
     {
         while (!cancellationToken.IsCancellationRequested && running)
         {
-            var result = _queue.TryDequeue(cancellationToken);
+            var result = await _queue.TryDequeueAsync(cancellationToken);
             if (result.Success)
             {
                 Handle(result.Item);
