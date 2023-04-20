@@ -13,6 +13,9 @@ public static class DependencyInjection
 {
     public static IServiceCollection AddMediatorCore<TMarker>(this IServiceCollection services)
     {
+        if (services.Any(x => x.ServiceType == typeof(IPublisher)))
+            return services;
+
         services.AddSingleton<IPublisher, MessageBusPublisher>();
         services.AddSingleton<TaskRunnerBackgroundService>();
         services.AddTransient<IHostedService>((s) => s.GetService<TaskRunnerBackgroundService>()!);

@@ -5,11 +5,12 @@ using Microsoft.Extensions.Hosting;
 namespace MediatorCore.RequestTypes.Stack;
 
 internal sealed class StackBackgroundService<TMessage> :
-    BackgroundService
+    IHostedService
     where TMessage : IStackMessage
 {
     private readonly IServiceProvider serviceProvider;
-    private readonly LockingStack<TMessage> queue = new();
+    private readonly LockingStack<TMessage> stack = new();
+    private bool running = true;
 
     public StackBackgroundService(IServiceProvider serviceProvider)
     {
@@ -18,14 +19,14 @@ internal sealed class StackBackgroundService<TMessage> :
 
     internal void Push(TMessage message)
     {
-        queue.Push(message);
+        stack.Push(message);
     }
 
-    protected async override Task ExecuteAsync(CancellationToken cancellationToken)
+    public async Task StartAsync(CancellationToken cancellationToken)
     {
-        while (!cancellationToken.IsCancellationRequested)
+        while (!cancellationToken.IsCancellationRequested && running)
         {
-            var messageResult = await queue.TryPopAsync(cancellationToken);
+            var messageResult = await stack.TryPopAsync(cancellationToken);
 
             if (!messageResult.Success)
                 continue;
@@ -35,5 +36,12 @@ internal sealed class StackBackgroundService<TMessage> :
                 as IStackHandler<TMessage>;
             await handler.HandleAsync(messageResult.Item);
         }
+    }
+
+    public Task StopAsync(CancellationToken cancellationToken)
+    {
+        running = false;
+        stack.Dispose();
+        return Task.CompletedTask;
     }
 }

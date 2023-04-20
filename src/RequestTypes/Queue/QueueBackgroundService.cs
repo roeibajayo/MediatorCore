@@ -5,11 +5,12 @@ using Microsoft.Extensions.Hosting;
 namespace MediatorCore.RequestTypes.Queue;
 
 internal sealed class QueueBackgroundService<TMessage> : 
-    BackgroundService 
+    IHostedService 
     where TMessage : IQueueMessage
 {
     private readonly IServiceProvider serviceProvider;
     private readonly LockingQueue<TMessage> queue = new();
+    private bool running = true;
 
     public QueueBackgroundService(IServiceProvider serviceProvider)
     {
@@ -21,11 +22,11 @@ internal sealed class QueueBackgroundService<TMessage> :
         queue.Enqueue(message);
     }
 
-    protected async override Task ExecuteAsync(CancellationToken cancellationToken)
+    public async Task StartAsync(CancellationToken cancellationToken)
     {
-        while (!cancellationToken.IsCancellationRequested)
+        while (!cancellationToken.IsCancellationRequested && running)
         {
-            var messageResult = await queue.TryDequeueAsync(cancellationToken);
+            var messageResult = queue.TryDequeue(cancellationToken);
 
             if (!messageResult.Success)
                 continue;
@@ -35,5 +36,12 @@ internal sealed class QueueBackgroundService<TMessage> :
                 as IQueueHandler<TMessage>;
             await handler.HandleAsync(messageResult.Item);
         }
+    }
+
+    public Task StopAsync(CancellationToken cancellationToken)
+    {
+        running = false;
+        queue.Dispose();
+        return Task.CompletedTask;
     }
 }

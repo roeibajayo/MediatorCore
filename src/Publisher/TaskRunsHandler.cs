@@ -9,11 +9,12 @@ using System.Reflection;
 namespace MediatorCore.Publisher;
 
 internal record TaskRunnerMessage(object Message, CancellationToken CancellationToken) : IQueueMessage;
-internal class TaskRunnerBackgroundService : BackgroundService
+internal class TaskRunnerBackgroundService : IHostedService, IDisposable
 {
     private readonly IServiceProvider serviceProvider;
     private readonly LockingQueue<TaskRunnerMessage> _queue = new();
     private readonly IDictionary<string, MethodInfo> _methodInfos = new Dictionary<string, MethodInfo>();
+    private bool running = true;
 
     public TaskRunnerBackgroundService(IServiceProvider serviceProvider)
     {
@@ -29,11 +30,11 @@ internal class TaskRunnerBackgroundService : BackgroundService
         }
     }
 
-    protected override async Task ExecuteAsync(CancellationToken stoppingToken)
+    public async Task StartAsync(CancellationToken cancellationToken)
     {
-        while (!stoppingToken.IsCancellationRequested)
+        while (!cancellationToken.IsCancellationRequested && running)
         {
-            var result = await _queue.TryDequeueAsync(stoppingToken);
+            var result = _queue.TryDequeue(cancellationToken);
             if (result.Success)
             {
                 Handle(result.Item);
@@ -80,6 +81,7 @@ internal class TaskRunnerBackgroundService : BackgroundService
         Task.Run(async () =>
         {
             using var scope = serviceProvider.CreateScope();
+            //todo: use dic instead for using a scope in each handler
             var handlers = scope.ServiceProvider.GetServices<IFireAndForgetHandler<TMessage>>();
             foreach (var handler in handlers)
                 await handler.HandleAsync(message, cancellationToken);
@@ -101,6 +103,7 @@ internal class TaskRunnerBackgroundService : BackgroundService
                     break;
                 }
             }
+            GC.Collect();
         });
     }
 
@@ -110,10 +113,23 @@ internal class TaskRunnerBackgroundService : BackgroundService
         Task.Run(async () =>
         {
             using var scope = serviceProvider.CreateScope();
+            //todo: use dic instead for using a scope in each handler
             var handlers = scope.ServiceProvider
                 .GetServices(typeof(IParallelNotificationHandler<TMessage>));
             await Task.WhenAll(handlers
                 .Select(handler => (handler as IParallelNotificationHandler<TMessage>)!.HandleAsync(message)));
+            GC.Collect();
         });
+    }
+
+    public Task StopAsync(CancellationToken cancellationToken)
+    {
+        Dispose();
+        return Task.CompletedTask;
+    }
+
+    public void Dispose()
+    {
+        running = false;
     }
 }

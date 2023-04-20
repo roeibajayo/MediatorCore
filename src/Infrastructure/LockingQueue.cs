@@ -6,14 +6,21 @@ namespace MediatorCore.Infrastructure;
 /// Thread-safe FIFO queue that lock the TryDequeue method if no elements in the queue
 /// </summary>
 /// <typeparam name="T"></typeparam>
-internal sealed class LockingQueue<T> : ConcurrentQueue<T>
+internal sealed class LockingQueue<T> : ConcurrentQueue<T>, IDisposable
 {
     private readonly SemaphoreSlim waitingLocker;
+    private bool running = true;
 
     internal LockingQueue()
     {
         waitingLocker = new SemaphoreSlim(1);
         waitingLocker.Wait();
+    }
+
+    public void Dispose()
+    {
+        running = false;
+        waitingLocker.Release();
     }
 
     internal void Enqueue(IEnumerable<T> items)
@@ -30,15 +37,15 @@ internal sealed class LockingQueue<T> : ConcurrentQueue<T>
         waitingLocker.Release();
     }
 
-    internal new bool TryDequeue(out T item)
+    internal new bool TryDequeue(out T? item)
     {
         var result = TryDequeueAsync(CancellationToken.None).Result;
         item = result.Item;
         return result.Success;
     }
-    internal async Task<(bool Success, T Item)> TryDequeueAsync(CancellationToken cancellationToken)
+    internal async Task<(bool Success, T? Item)> TryDequeueAsync(CancellationToken cancellationToken)
     {
-        while (true)
+        while (running)
         {
             if (base.TryDequeue(out var item))
             {
@@ -47,5 +54,12 @@ internal sealed class LockingQueue<T> : ConcurrentQueue<T>
 
             await waitingLocker.WaitAsync(cancellationToken);
         }
+
+        return (false, default);
+    }
+
+    ~LockingQueue()
+    {
+        Dispose();
     }
 }

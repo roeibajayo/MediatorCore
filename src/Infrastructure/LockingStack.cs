@@ -6,14 +6,21 @@ namespace MediatorCore.Infrastructure;
 /// Thread-safe LIFO queue that lock the TryPop method if no elements in the queue
 /// </summary>
 /// <typeparam name="T"></typeparam>
-internal sealed class LockingStack<T> : ConcurrentStack<T>
+internal sealed class LockingStack<T> : ConcurrentStack<T>, IDisposable
 {
     private readonly SemaphoreSlim waitingLocker;
+    private bool running = true;
 
     internal LockingStack()
     {
         waitingLocker = new SemaphoreSlim(1);
         waitingLocker.Wait();
+    }
+
+    public void Dispose()
+    {
+        running = false;
+        waitingLocker.Release();
     }
 
     internal void Push(IEnumerable<T> items)
@@ -30,15 +37,15 @@ internal sealed class LockingStack<T> : ConcurrentStack<T>
         waitingLocker.Release();
     }
 
-    internal new bool TryPop(out T item)
+    internal new bool TryPop(out T? item)
     {
         var result = TryPopAsync(CancellationToken.None).Result;
         item = result.Item;
         return result.Success;
     }
-    internal async Task<(bool Success, T Item)> TryPopAsync(CancellationToken cancellationToken)
+    internal async Task<(bool Success, T? Item)> TryPopAsync(CancellationToken cancellationToken)
     {
-        while (true)
+        while (running)
         {
             if (base.TryPop(out var item))
             {
@@ -47,5 +54,12 @@ internal sealed class LockingStack<T> : ConcurrentStack<T>
 
             await waitingLocker.WaitAsync(cancellationToken);
         }
+
+        return (false, default);
+    }
+
+    ~LockingStack()
+    {
+        Dispose();
     }
 }
