@@ -3,6 +3,7 @@ using MediatorCore.RequestTypes.FireAndForget;
 using MediatorCore.RequestTypes.Notification;
 using MediatorCore.RequestTypes.Queue;
 using MediatorCore.RequestTypes.Response;
+using MediatorCore.RequestTypes.Stack;
 using Microsoft.Extensions.DependencyInjection;
 
 namespace MediatorCore.Publisher;
@@ -29,6 +30,13 @@ internal sealed class MessageBusPublisher : IPublisher
         {
             dynamic handler = this;
             handler.HandleQueueMessage<TMessage>(message);
+            return;
+        }
+
+        if (message is IStackMessage)
+        {
+            dynamic handler = this;
+            handler.HandleStackMessage<TMessage>(message);
             return;
         }
 
@@ -63,6 +71,13 @@ internal sealed class MessageBusPublisher : IPublisher
     {
         var service = serviceProvider.GetService<QueueBackgroundService<TMessage>>();
         service.Enqueue(message);
+    }
+
+    private void HandleStackMessage<TMessage>(TMessage message)
+        where TMessage : IStackMessage
+    {
+        var service = serviceProvider.GetService<StackBackgroundService<TMessage>>();
+        service.Push(message);
     }
 
     private async Task<TResponse> HandleResponseMessageAsync<TResponse>(IResponseMessage<TResponse> message,

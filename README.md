@@ -8,6 +8,7 @@ High-performance yet easy to use mediator pattern and in-process message bus imp
 Supports these messages:
 - Request/Response (IResponseHandler<TRequest, TResponse>)
 - Queue (IQueueHandler<TMessage>)
+- Stack (IStackHandler<TMessage>)
 - AccumulatorQueue (IAccumulatorQueueHandler<TMessage, TAccumulatorQueueOptions>)
 - FireAndForget (IFireAndForgetHandler<TMessage>)
 - BubblingNotification (IBubblingNotificationHandler<TMessage, TBubblingNotificationOptions>)

@@ -4,6 +4,7 @@ using MediatorCore.RequestTypes.FireAndForget;
 using MediatorCore.RequestTypes.Notification;
 using MediatorCore.RequestTypes.Queue;
 using MediatorCore.RequestTypes.Response;
+using MediatorCore.RequestTypes.Stack;
 using Microsoft.Extensions.Hosting;
 
 namespace Microsoft.Extensions.DependencyInjection;
@@ -20,6 +21,7 @@ public static class DependencyInjection
         services.AddFireAndForgetHandlers<TMarker>();
         services.AddNotificationsHandlers<TMarker>();
         services.AddQueueHandlers<TMarker>();
+        services.AddStackHandlers<TMarker>();
         services.AddResponseHandlers<TMarker>();
 
         return services;
