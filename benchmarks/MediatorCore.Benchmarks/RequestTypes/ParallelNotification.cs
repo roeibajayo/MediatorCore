@@ -1,5 +1,6 @@
 ﻿using MediatorCore.RequestTypes.Notification;
 using MediatR;
+using System.Threading;
 
 namespace MediatorCore.Benchmarks.RequestTypes;
 
@@ -11,14 +12,14 @@ public class SimpleParallelNotification1Handler :
     IParallelNotificationHandler<SimpleParallelNotificationMessage>,
     INotificationHandler<SimpleParallelNotificationMessage>
 {
-    public Task Handle(SimpleParallelNotificationMessage notification, CancellationToken cancellationToken)
+    public async Task Handle(SimpleParallelNotificationMessage notification, CancellationToken cancellationToken)
     {
-        return Task.CompletedTask;
+        await Task.Delay(1000, cancellationToken);
     }
 
-    public Task HandleAsync(SimpleParallelNotificationMessage message)
+    public async Task HandleAsync(SimpleParallelNotificationMessage message)
     {
-        return Task.CompletedTask;
+        await Task.Delay(1000);
     }
 }
 
@@ -26,13 +27,13 @@ public class SimpleParallelNotification2Handler :
     IParallelNotificationHandler<SimpleParallelNotificationMessage>,
     INotificationHandler<SimpleParallelNotificationMessage>
 {
-    public Task Handle(SimpleParallelNotificationMessage notification, CancellationToken cancellationToken)
+    public async Task Handle(SimpleParallelNotificationMessage notification, CancellationToken cancellationToken)
     {
-        return Task.CompletedTask;
+        await Task.Delay(1000);
     }
 
-    public Task HandleAsync(SimpleParallelNotificationMessage message)
+    public async Task HandleAsync(SimpleParallelNotificationMessage message)
     {
-        return Task.CompletedTask;
+        await Task.Delay(1000);
     }
 }

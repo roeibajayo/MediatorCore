@@ -1,5 +1,6 @@
 ﻿using MediatorCore.Publisher;
 using MediatorCore.RequestTypes.AccumulatorQueue;
+using MediatorCore.RequestTypes.DebounceQueue;
 using MediatorCore.RequestTypes.FireAndForget;
 using MediatorCore.RequestTypes.Notification;
 using MediatorCore.RequestTypes.Queue;
@@ -21,6 +22,7 @@ public static class DependencyInjection
         services.AddTransient<IHostedService>((s) => s.GetService<TaskRunnerBackgroundService>()!);
 
         services.AddAccumulatorQueueHandlers<TMarker>();
+        services.AddDebounceQueueHandlers<TMarker>();
         services.AddFireAndForgetHandlers<TMarker>();
         services.AddNotificationsHandlers<TMarker>();
         services.AddQueueHandlers<TMarker>();

@@ -103,7 +103,6 @@ internal class TaskRunnerBackgroundService : IHostedService, IDisposable
                     break;
                 }
             }
-            GC.Collect();
         });
     }
 
@@ -118,7 +117,6 @@ internal class TaskRunnerBackgroundService : IHostedService, IDisposable
                 .GetServices(typeof(IParallelNotificationHandler<TMessage>));
             await Task.WhenAll(handlers
                 .Select(handler => (handler as IParallelNotificationHandler<TMessage>)!.HandleAsync(message)));
-            GC.Collect();
         });
     }
 

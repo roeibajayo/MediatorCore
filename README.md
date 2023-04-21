@@ -9,6 +9,7 @@ Supports these messages:
 - Request/Response (IResponseHandler<TRequest, TResponse>)
 - Queue (IQueueHandler<TMessage>)
 - Stack (IStackHandler<TMessage>)
+- DebounceQueue (IDebounceQueueMessage<TMessage, TDebounceQueueOptions>)
 - AccumulatorQueue (IAccumulatorQueueHandler<TMessage, TAccumulatorQueueOptions>)
 - FireAndForget (IFireAndForgetHandler<TMessage>)
 - BubblingNotification (IBubblingNotificationHandler<TMessage, TBubblingNotificationOptions>)

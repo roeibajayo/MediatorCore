@@ -4,13 +4,13 @@ using System.Collections.Concurrent;
 
 namespace MediatorCore.RequestTypes.AccumulatorQueue;
 
-internal interface IQueueBackgroundService<TMessage> where TMessage : IAccumulatorQueueMessage
+internal interface IAccumulatorQueueBackgroundService<TMessage> where TMessage : IAccumulatorQueueMessage
 {
     void Enqueue(TMessage item);
 }
 internal sealed class AccumulatorQueueBackgroundService<TMessage, TOptions> :
     IntervalBackgroundService,
-    IQueueBackgroundService<TMessage>
+    IAccumulatorQueueBackgroundService<TMessage>
     where TMessage : IAccumulatorQueueMessage
     where TOptions : class, IAccumulatorQueueOptions
 {

@@ -1,4 +1,5 @@
 ﻿using MediatorCore.RequestTypes.AccumulatorQueue;
+using MediatorCore.RequestTypes.DebounceQueue;
 using MediatorCore.RequestTypes.FireAndForget;
 using MediatorCore.RequestTypes.Notification;
 using MediatorCore.RequestTypes.Queue;
@@ -40,6 +41,13 @@ internal sealed class MessageBusPublisher : IPublisher
             return;
         }
 
+        if (message is IDebounceQueueMessage)
+        {
+            dynamic handler = this;
+            handler.HandleDebounceQueueMessage<TMessage>(message);
+            return;
+        }
+
         if (message is IFireAndForgetMessage ||
             message is IBubblingNotificationMessage ||
             message is IParallelNotificationMessage)
@@ -62,7 +70,15 @@ internal sealed class MessageBusPublisher : IPublisher
     private void HandleAccumulatorQueueMessage<TMessage>(TMessage message)
         where TMessage : IAccumulatorQueueMessage
     {
-        var services = serviceProvider.GetServices<IQueueBackgroundService<TMessage>>();
+        var services = serviceProvider.GetServices<IAccumulatorQueueBackgroundService<TMessage>>();
+        foreach (var service in services)
+            service.Enqueue(message);
+    }
+
+    private void HandleDebounceQueueMessage<TMessage>(TMessage message)
+        where TMessage : IDebounceQueueMessage
+    {
+        var services = serviceProvider.GetServices<IDebounceQueueBackgroundService<TMessage>>();
         foreach (var service in services)
             service.Enqueue(message);
     }

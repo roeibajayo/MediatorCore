@@ -43,10 +43,10 @@ public class ParallelNotification1Handler : IParallelNotificationHandler<Paralle
         this.logger = logger;
     }
 
-    public Task HandleAsync(ParallelNotificationMessage message)
+    public async Task HandleAsync(ParallelNotificationMessage message)
     {
+        await Task.Delay(1000);
         logger.LogDebug("ParallelNotification1Message: " + message.Id);
-        return Task.CompletedTask;
     }
 }
 public class ParallelNotification2Handler : IParallelNotificationHandler<ParallelNotificationMessage>
@@ -58,9 +58,9 @@ public class ParallelNotification2Handler : IParallelNotificationHandler<Paralle
         this.logger = logger;
     }
 
-    public Task HandleAsync(ParallelNotificationMessage message)
+    public async Task HandleAsync(ParallelNotificationMessage message)
     {
+        await Task.Delay(1000);
         logger.LogDebug("ParallelNotification2Message: " + message.Id);
-        return Task.CompletedTask;
     }
 }

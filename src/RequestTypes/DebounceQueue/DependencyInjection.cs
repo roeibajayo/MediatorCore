@@ -2,30 +2,30 @@
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 
-namespace MediatorCore.RequestTypes.AccumulatorQueue;
+namespace MediatorCore.RequestTypes.DebounceQueue;
 
 internal static class DependencyInjection
 {
-    internal static void AddAccumulatorQueueHandlers<TMarker>(this IServiceCollection services)
+    internal static void AddDebounceQueueHandlers<TMarker>(this IServiceCollection services)
     {
-        var handlers = AssemblyExtentions.GetAllInheritsFromMarker(typeof(IAccumulatorQueueHandler<,>), typeof(TMarker));
+        var handlers = AssemblyExtentions.GetAllInheritsFromMarker(typeof(IDebounceQueueHandler<,>), typeof(TMarker));
         foreach (var handler in handlers)
         {
             var args = handler.GetInterfaces()
-                .First(x => x.IsGenericType && x.GetGenericTypeDefinition() == typeof(IAccumulatorQueueHandler<,>))
+                .First(x => x.IsGenericType && x.GetGenericTypeDefinition() == typeof(IDebounceQueueHandler<,>))
                 .GetGenericArguments();
 
             var messageType = args[0];
             var optionsType = args[1];
 
-            var serviceType = typeof(AccumulatorQueueBackgroundService<,>)
+            var serviceType = typeof(DebounceQueueBackgroundService<,>)
                 .MakeGenericType(messageType, optionsType);
-            var serviceInterface = typeof(IAccumulatorQueueBackgroundService<>)
+            var serviceInterface = typeof(IDebounceQueueBackgroundService<>)
                 .MakeGenericType(messageType);
             services.AddSingleton(serviceInterface, serviceType);
             services.AddTransient(s => s.GetRequiredService(serviceInterface) as IHostedService);
 
-            var handlerInterface = typeof(IBaseAccumulatorQueue<>)
+            var handlerInterface = typeof(IBaseDebounceQueue<>)
                 .MakeGenericType(messageType);
             services.AddScoped(handlerInterface, handler);
         }
