@@ -1,4 +1,5 @@
-﻿using MediatorCore.Infrastructure;
+﻿using MediatorCore.BackgroundServices;
+using MediatorCore.Infrastructure;
 using MediatorCore.RequestTypes.FireAndForget;
 using MediatorCore.RequestTypes.Notification;
 using MediatorCore.RequestTypes.Queue;
@@ -14,6 +15,8 @@ internal class TaskRunnerBackgroundService : IHostedService, IDisposable
     private readonly IServiceProvider serviceProvider;
     private readonly LockingQueue<TaskRunnerMessage> _queue = new();
     private readonly IDictionary<string, MethodInfo> _methodInfos = new Dictionary<string, MethodInfo>();
+    private readonly IPublisher? publisher;
+    private readonly GarbageCollectionQueueItem garbageCollectionQueueItem = new();
     private bool running = true;
 
     public TaskRunnerBackgroundService(IServiceProvider serviceProvider)
@@ -28,6 +31,8 @@ internal class TaskRunnerBackgroundService : IHostedService, IDisposable
         {
             _methodInfos[handler.Name] = handler;
         }
+
+        publisher = serviceProvider.GetService<IPublisher>();
     }
 
     public async Task StartAsync(CancellationToken cancellationToken)
@@ -78,7 +83,7 @@ internal class TaskRunnerBackgroundService : IHostedService, IDisposable
     private void HandleFireAndForgetMessage<TMessage>(TMessage message, CancellationToken cancellationToken)
         where TMessage : IFireAndForgetMessage
     {
-        Task.Run(async () =>
+        Task.Factory.StartNew(async () =>
         {
             using var scope = serviceProvider.CreateScope();
             //todo: use dic instead for using a scope in each handler
@@ -91,7 +96,7 @@ internal class TaskRunnerBackgroundService : IHostedService, IDisposable
     private void HandleBubblingNotificationMessage<TMessage>(TMessage message)
         where TMessage : IBubblingNotificationMessage
     {
-        Task.Run(async () =>
+        Task.Factory.StartNew(async () =>
         {
             using var scope = serviceProvider.CreateScope();
             var handlers = RequestTypes.Notification.DependencyInjection._bubblingHandlers[typeof(TMessage)]
@@ -109,7 +114,7 @@ internal class TaskRunnerBackgroundService : IHostedService, IDisposable
     private void HandleParallelNotificationMessage<TMessage>(TMessage message)
         where TMessage : IParallelNotificationMessage
     {
-        Task.Run(async () =>
+        Task.Factory.StartNew(async () =>
         {
             using var scope = serviceProvider.CreateScope();
             //todo: use dic instead for using a scope in each handler
@@ -117,7 +122,9 @@ internal class TaskRunnerBackgroundService : IHostedService, IDisposable
                 .GetServices(typeof(IParallelNotificationHandler<TMessage>));
             await Task.WhenAll(handlers
                 .Select(handler => (handler as IParallelNotificationHandler<TMessage>)!.HandleAsync(message)));
-        });
+        })
+            .ContinueWith((t) => publisher!.Publish(garbageCollectionQueueItem))
+            .ConfigureAwait(false);
     }
 
     public Task StopAsync(CancellationToken cancellationToken)
