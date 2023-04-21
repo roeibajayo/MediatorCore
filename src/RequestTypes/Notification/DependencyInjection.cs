@@ -1,5 +1,7 @@
 ﻿using MediatorCore.Infrastructure;
+using MediatorCore.Publisher;
 using Microsoft.Extensions.DependencyInjection;
+using System.Reflection;
 
 namespace MediatorCore.RequestTypes.Notification;
 
@@ -57,6 +59,11 @@ internal static class DependencyInjection
             var messageType = handlerInterface
                 .GetGenericArguments()
                 .First();
+
+            var parallelHandler = typeof(IParallelNotificationHandler<>)
+                .MakeGenericType(messageType);
+
+            TaskRunnerBackgroundService._parallelHandlers.TryAdd(messageType, parallelHandler);
 
             services.AddScoped(handlerInterface, handler);
         }

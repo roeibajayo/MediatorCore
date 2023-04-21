@@ -1,5 +1,4 @@
-﻿using MediatorCore.RequestTypes.Queue;
-using MediatorCore.RequestTypes.Response;
+﻿using MediatorCore.RequestTypes.Response;
 
 namespace MediatorCore.Publisher
 {
@@ -9,9 +8,7 @@ namespace MediatorCore.Publisher
         Task<TResponse> GetResponseAsync<TResponse>(IResponseMessage<TResponse> message,
             CancellationToken cancellationToken);
 
-        void Publish<T>(T message) =>
-            Publish(message, CancellationToken.None);
-        void Publish<T>(T message, CancellationToken cancellationToken);
+        void Publish<T>(T message, CancellationToken cancellationToken = default);
 
         //MediatR support
         Task<TResponse> Send<TResponse>(IResponseMessage<TResponse> message) =>

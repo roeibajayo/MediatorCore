@@ -31,10 +31,14 @@ internal sealed class StackBackgroundService<TMessage> :
             if (!messageResult.Success)
                 continue;
 
-            await using var scope = serviceProvider.CreateAsyncScope();
-            var handler = scope.ServiceProvider.GetService(typeof(IStackHandler<TMessage>))
-                as IStackHandler<TMessage>;
-            await handler.HandleAsync(messageResult.Item);
+            _ = Task.Run(async () =>
+            {
+                using var scope = serviceProvider.CreateScope();
+                var handler = scope.ServiceProvider.GetService(typeof(IStackHandler<TMessage>))
+                    as IStackHandler<TMessage>;
+                await handler.HandleAsync(messageResult.Item);
+            })
+                .ConfigureAwait(false);
         }
     }
 

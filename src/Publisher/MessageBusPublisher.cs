@@ -18,7 +18,7 @@ internal sealed class MessageBusPublisher : IPublisher
         this.serviceProvider = serviceProvider;
     }
 
-    public void Publish<TMessage>(TMessage message, CancellationToken cancellationToken)
+    public void Publish<TMessage>(TMessage message, CancellationToken cancellationToken = default)
     {
         if (message is IAccumulatorQueueMessage)
         {

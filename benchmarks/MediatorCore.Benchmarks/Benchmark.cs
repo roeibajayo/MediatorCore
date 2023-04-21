@@ -7,11 +7,15 @@ using Microsoft.Extensions.Hosting;
 namespace MediatorCore.Benchmarks;
 
 [MemoryDiagnoser(false)]
+[ExceptionDiagnoser]
 public class Benchmark
 {
     private IServiceProvider? serviceProvider;
     private CancellationTokenSource? cancellationToken;
     private IServiceProvider? scopedServiceProvider;
+    private Publisher.IPublisher? mediatorCorePublihser;
+    private IPublisher? mediatrPublihser;
+    private ISender? mediatrSender;
     private SimpleResponseMessage request = new(1);
     private SimpleParallelNotificationMessage simpleParallelNotification = new(1);
     private LongRunningParallelNotificationMessage longRunningParallelNotification = new(1);
@@ -29,68 +33,66 @@ public class Benchmark
         var services = serviceProvider.GetServices<IHostedService>();
         foreach (var service in services)
         {
-            Task.Run(() =>
-            {
-                service.StartAsync(cancellationToken.Token);
-            });
+            service.StartAsync(cancellationToken.Token);
         }
 
         scopedServiceProvider = serviceProvider.CreateScope().ServiceProvider;
+        mediatorCorePublihser = scopedServiceProvider!.GetService<Publisher.IPublisher>();
+        mediatrPublihser = scopedServiceProvider!.GetService<IPublisher>();
+        mediatrSender = scopedServiceProvider!.GetService<ISender>();
     }
 
-    [Benchmark]
-    public async Task<SimpleResponse> Response_MediatorCore()
+    //[Benchmark]
+    //public async Task<SimpleResponse> Response_MediatorCore()
+    //{
+    //    return await mediatorCorePublihser!.GetResponseAsync(request);
+    //}
+
+    //[Benchmark]
+    //public async Task<SimpleResponse> Response_MediatR()
+    //{
+    //    return await mediatrSender!.Send(request);
+    //}
+
+    [Benchmark(Description = "ParallelNotification_Simple")]
+    [BenchmarkCategory("MediatorCore")]
+    public void ParallelNotification_Simple1()
     {
-        var publihser = scopedServiceProvider!.GetService<Publisher.IPublisher>();
-        return await publihser!.GetResponseAsync(request);
+        mediatorCorePublihser!.Publish(simpleParallelNotification);
     }
 
-    [Benchmark]
-    public async Task<SimpleResponse> Response_MediatR()
-    {
-        var publihser = scopedServiceProvider!.GetService<ISender>();
-        return await publihser!.Send(request);
-    }
+    //[Benchmark(Description = "ParallelNotification_Simple")]
+    //[BenchmarkCategory("MediatR")]
+    //public void ParallelNotification_Simple2()
+    //{
+    //    mediatrPublihser!.Publish(simpleParallelNotification);
+    //}
 
-    [Benchmark]
-    public void ParallelNotification_Simple_MediatorCore()
-    {
-        var publihser = scopedServiceProvider!.GetService<Publisher.IPublisher>();
-        publihser!.Publish(simpleParallelNotification);
-    }
+    //[Benchmark]
+    //public void ParallelNotification_LongRunning_MediatorCore()
+    //{
+    //    var publihser = scopedServiceProvider!.GetService<Publisher.IPublisher>();
+    //    publihser!.Publish(longRunningParallelNotification);
+    //}
 
-    [Benchmark]
-    public void ParallelNotification_Simple_MediatR()
-    {
-        var publihser = scopedServiceProvider!.GetService<IPublisher>();
-        publihser!.Publish(simpleParallelNotification);
-    }
+    //[Benchmark]
+    //public void ParallelNotification_LongRunning_MediatR()
+    //{
+    //    var publihser = scopedServiceProvider!.GetService<IPublisher>();
+    //    publihser!.Publish(longRunningParallelNotification);
+    //}
 
-    [Benchmark]
-    public void ParallelNotification_LongRunning_MediatorCore()
-    {
-        var publihser = scopedServiceProvider!.GetService<Publisher.IPublisher>();
-        publihser!.Publish(longRunningParallelNotification);
-    }
-
-    [Benchmark]
-    public void ParallelNotification_LongRunning_MediatR()
-    {
-        var publihser = scopedServiceProvider!.GetService<IPublisher>();
-        publihser!.Publish(longRunningParallelNotification);
-    }
-
-    ~Benchmark()
+    [GlobalCleanup]
+    public void Dispose()
     {
         cancellationToken!.Cancel();
 
         var services = serviceProvider!.GetServices<IHostedService>();
         foreach (var service in services)
         {
-            Task.Run(() =>
-            {
-                service.StopAsync(cancellationToken.Token);
-            });
+            service.StopAsync(cancellationToken.Token);
         }
+
+        cancellationToken.Dispose();
     }
 }

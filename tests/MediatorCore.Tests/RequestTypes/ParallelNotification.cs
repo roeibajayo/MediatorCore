@@ -7,8 +7,11 @@ namespace MediatorCore.Tests.RequestTypes;
 
 public class ParallelNotification : BaseUnitTest
 {
-    [Fact]
-    public async Task PublishBubbleMessage_ReturnNoErrorsAndDequeue()
+    [Theory]
+    [InlineData(1)]
+    [InlineData(10)]
+    [InlineData(10_000)]
+    public async Task PublishBubbleMessage_ReturnNoErrorsAndDequeue(int counts)
     {
         //Arrange
         var publisher = serviceProvider.GetService<IPublisher>()!;
@@ -16,13 +19,16 @@ public class ParallelNotification : BaseUnitTest
         var id = "1_" + Guid.NewGuid();
 
         //Act
-        publisher.Publish(new ParallelNotificationMessage(id));
+        for (var i = 0; i < counts; i++)
+        {
+            publisher.Publish(new ParallelNotificationMessage(id));
+        }
 
         //Assert
         for (var i = 0; i < 10; i++)
         {
-            if (ReceivedDebugs(logger, "ParallelNotification1Message: " + id) == 1 &&
-                ReceivedDebugs(logger, "ParallelNotification2Message: " + id) == 1)
+            if (ReceivedDebugs(logger, "ParallelNotification1Message: " + id) == counts &&
+                ReceivedDebugs(logger, "ParallelNotification2Message: " + id) == counts)
             {
                 return;
             }

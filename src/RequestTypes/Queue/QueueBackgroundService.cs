@@ -4,8 +4,8 @@ using Microsoft.Extensions.Hosting;
 
 namespace MediatorCore.RequestTypes.Queue;
 
-internal sealed class QueueBackgroundService<TMessage> : 
-    IHostedService 
+internal sealed class QueueBackgroundService<TMessage> :
+    IHostedService
     where TMessage : IQueueMessage
 {
     private readonly IServiceProvider serviceProvider;
@@ -31,10 +31,14 @@ internal sealed class QueueBackgroundService<TMessage> :
             if (!messageResult.Success)
                 continue;
 
-            await using var scope = serviceProvider.CreateAsyncScope();
-            var handler = scope.ServiceProvider.GetService(typeof(IQueueHandler<TMessage>))
-                as IQueueHandler<TMessage>;
-            await handler.HandleAsync(messageResult.Item);
+            _ = Task.Run(async () =>
+            {
+                using var scope = serviceProvider.CreateScope();
+                var handler = scope.ServiceProvider.GetService(typeof(IQueueHandler<TMessage>))
+                    as IQueueHandler<TMessage>;
+                await handler.HandleAsync(messageResult.Item);
+            })
+                .ConfigureAwait(false);
         }
     }
 

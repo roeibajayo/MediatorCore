@@ -44,9 +44,12 @@ internal sealed class AccumulatorQueueBackgroundService<TMessage, TOptions> :
         if (list.Count == 0)
             return;
 
-        await using var scope = serviceProvider.CreateAsyncScope();
-        var handlerInstance = scope.ServiceProvider.GetService<IBaseAccumulatorQueue<TMessage>>();
-        await handlerInstance.HandleAsync(list);
+        _ = Task.Run(async () =>
+        {
+            using var scope = serviceProvider.CreateScope();
+            var handlerInstance = scope.ServiceProvider.GetService<IBaseAccumulatorQueue<TMessage>>();
+            await handlerInstance.HandleAsync(list);
+        });
     }
 
     public void Enqueue(TMessage item)

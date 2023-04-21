@@ -11,7 +11,7 @@ internal sealed class LockingDebounceQueue<T> : IDisposable
     private readonly SemaphoreSlim waitingLocker;
     private T? lastItem = null;
     private bool running = true;
-    private Task? delayTask = null;
+    private bool bouncing = false;
     private readonly object lockObject = new();
 
     internal LockingDebounceQueue(int ms)
@@ -30,26 +30,36 @@ internal sealed class LockingDebounceQueue<T> : IDisposable
 
     internal void Enqueue(T item)
     {
-        lastItem = item;
-
         lock (lockObject)
         {
-            delayTask ??= Task.Delay(ms)
-                    .ContinueWith((t) => waitingLocker.Release());
+            lastItem = item;
+
+            if (bouncing)
+                return;
+
+            bouncing = true;
         }
+
+        DelayTask();
+    }
+
+    private async void DelayTask()
+    {
+        await Task.Delay(ms);
+        waitingLocker.Release();
     }
 
     internal async Task<(bool Success, T? Item)> TryDequeueAsync(CancellationToken cancellationToken)
     {
         while (running)
         {
-            lock (lockObject)
+            if (lastItem is not null)
             {
-                if (lastItem is not null)
+                lock (lockObject)
                 {
                     var result = lastItem;
                     lastItem = null;
-                    delayTask = null;
+                    bouncing = false;
                     return (true, result);
                 }
             }
