@@ -13,7 +13,8 @@ public class Benchmark
     private CancellationTokenSource? cancellationToken;
     private IServiceProvider? scopedServiceProvider;
     private SimpleResponseMessage request = new(1);
-    private SimpleParallelNotificationMessage parallelNotification = new(1);
+    private SimpleParallelNotificationMessage simpleParallelNotification = new(1);
+    private LongRunningParallelNotificationMessage longRunningParallelNotification = new(1);
 
     [GlobalSetup]
     public void Setup()
@@ -37,32 +38,46 @@ public class Benchmark
         scopedServiceProvider = serviceProvider.CreateScope().ServiceProvider;
     }
 
-    //[Benchmark]
-    //public async Task<SimpleResponse> Response_MediatorCore()
-    //{
-    //    var publihser = scopedServiceProvider!.GetService<Publisher.IPublisher>();
-    //    return await publihser!.GetResponseAsync(request);
-    //}
-
-    //[Benchmark]
-    //public async Task<SimpleResponse> Response_MediatR()
-    //{
-    //    var publihser = scopedServiceProvider!.GetService<ISender>();
-    //    return await publihser!.Send(request);
-    //}
-
     [Benchmark]
-    public void ParallelNotification_MediatorCore()
+    public async Task<SimpleResponse> Response_MediatorCore()
     {
         var publihser = scopedServiceProvider!.GetService<Publisher.IPublisher>();
-        publihser!.Publish(parallelNotification);
+        return await publihser!.GetResponseAsync(request);
     }
 
     [Benchmark]
-    public void ParallelNotification_MediatR()
+    public async Task<SimpleResponse> Response_MediatR()
+    {
+        var publihser = scopedServiceProvider!.GetService<ISender>();
+        return await publihser!.Send(request);
+    }
+
+    [Benchmark]
+    public void ParallelNotification_Simple_MediatorCore()
+    {
+        var publihser = scopedServiceProvider!.GetService<Publisher.IPublisher>();
+        publihser!.Publish(simpleParallelNotification);
+    }
+
+    [Benchmark]
+    public void ParallelNotification_Simple_MediatR()
     {
         var publihser = scopedServiceProvider!.GetService<IPublisher>();
-        publihser!.Publish(parallelNotification);
+        publihser!.Publish(simpleParallelNotification);
+    }
+
+    [Benchmark]
+    public void ParallelNotification_LongRunning_MediatorCore()
+    {
+        var publihser = scopedServiceProvider!.GetService<Publisher.IPublisher>();
+        publihser!.Publish(longRunningParallelNotification);
+    }
+
+    [Benchmark]
+    public void ParallelNotification_LongRunning_MediatR()
+    {
+        var publihser = scopedServiceProvider!.GetService<IPublisher>();
+        publihser!.Publish(longRunningParallelNotification);
     }
 
     ~Benchmark()
