@@ -6,20 +6,30 @@ using MediatorCore.RequestTypes.Notification;
 using MediatorCore.RequestTypes.Queue;
 using MediatorCore.RequestTypes.Response;
 using MediatorCore.RequestTypes.Stack;
-using Microsoft.Extensions.Hosting;
 
 namespace Microsoft.Extensions.DependencyInjection;
 
 public static class DependencyInjection
 {
-    public static IServiceCollection AddMediatorCore<TMarker>(this IServiceCollection services)
+
+    /// <summary>
+    /// Add MediatorCore services.
+    /// </summary>
+    /// <typeparam name="TMarker"></typeparam>
+    /// <param name="services"></param>
+    /// <param name="options">Global MediatorCore configuration</param>
+    /// <returns></returns>
+    public static IServiceCollection AddMediatorCore<TMarker>(this IServiceCollection services, 
+        Action<MediatorCoreOptions>? options = null)
     {
         if (!services.Any(x => x.ServiceType == typeof(IPublisher)))
         {
-            services.AddScoped<IPublisher, MessageBusPublisher>();
-            services.AddSingleton<TaskRunnerBackgroundService>();
-            services.AddSingleton<IHostedService>((s) => s.GetService<TaskRunnerBackgroundService>()!);
-            //services.AddMediatorCore<IPublisher>();
+            MediatorCoreOptions.instance = new MediatorCoreOptions();
+            options?.Invoke(MediatorCoreOptions.instance);
+
+            services.Add(new ServiceDescriptor(typeof(IPublisher), 
+                typeof(MessageBusPublisher),
+                MediatorCoreOptions.instance.HandlersLifetime));
         }
 
         services.AddAccumulatorQueueHandlers<TMarker>();

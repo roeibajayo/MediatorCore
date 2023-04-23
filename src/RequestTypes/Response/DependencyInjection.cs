@@ -1,4 +1,5 @@
 ﻿using MediatorCore.Infrastructure;
+using MediatorCore.Publisher;
 using Microsoft.Extensions.DependencyInjection;
 
 namespace MediatorCore.RequestTypes.Response;
@@ -21,7 +22,9 @@ internal static class DependencyInjection
             var response = types[1];
 
             var handlerInterface = typeof(IResponseHandler<,>).MakeGenericType(types);
-            services.AddScoped(handlerInterface, handler);
+            services.Add(new ServiceDescriptor(handlerInterface,
+                handler,
+                MediatorCoreOptions.instance.HandlersLifetime));
 
             var wrapperType = typeof(ResponseHandlerWrapper<,>).MakeGenericType(message, response);
             var wrapper = Activator.CreateInstance(wrapperType);
@@ -37,7 +40,8 @@ internal abstract class BaseResponseHandlerWrapper<TResponse>
         CancellationToken cancellationToken);
 }
 
-internal class ResponseHandlerWrapper<TRequest, TResponse> : BaseResponseHandlerWrapper<TResponse>
+internal class ResponseHandlerWrapper<TRequest, TResponse> : 
+    BaseResponseHandlerWrapper<TResponse>
     where TRequest : IResponseMessage<TResponse>
 {
     internal override Task<TResponse> HandleAsync(IResponseMessage<TResponse> request, 

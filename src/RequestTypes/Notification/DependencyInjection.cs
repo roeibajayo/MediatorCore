@@ -41,7 +41,9 @@ internal static class DependencyInjection
                     new List<(Type, IBubblingNotificationOptions)> { (handler, options!) });
             }
 
-            services.AddScoped(handler);
+            services.Add(new ServiceDescriptor(handler,
+                handler,
+                MediatorCoreOptions.instance.HandlersLifetime));
         }
 
         _bubblingHandlers = orders.ToDictionary(x => x.Key, 
@@ -59,12 +61,9 @@ internal static class DependencyInjection
                 .GetGenericArguments()
                 .First();
 
-            var parallelHandler = typeof(IParallelNotificationHandler<>)
-                .MakeGenericType(messageType);
-
-            TaskRunnerBackgroundService._parallelHandlers.TryAdd(messageType, parallelHandler);
-
-            services.AddScoped(handlerInterface, handler);
+            services.Add(new ServiceDescriptor(handlerInterface,
+                handler,
+                MediatorCoreOptions.instance.HandlersLifetime));
         }
     }
 }

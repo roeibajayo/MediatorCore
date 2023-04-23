@@ -1,4 +1,5 @@
 ﻿using MediatorCore.Infrastructure;
+using MediatorCore.Publisher;
 using Microsoft.Extensions.DependencyInjection;
 
 namespace MediatorCore.RequestTypes.FireAndForget;
@@ -16,7 +17,9 @@ internal static class DependencyInjection
                 .First();
 
             var handlerInterface = typeof(IFireAndForgetHandler<>).MakeGenericType(messageType);
-            services.AddScoped(handlerInterface, handler);
+            services.Add(new ServiceDescriptor(handlerInterface,
+                handler,
+                MediatorCoreOptions.instance.HandlersLifetime));
         }
     }
 }

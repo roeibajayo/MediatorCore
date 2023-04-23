@@ -7,7 +7,6 @@ using Microsoft.Extensions.Hosting;
 namespace MediatorCore.Benchmarks;
 
 [MemoryDiagnoser(false)]
-[ExceptionDiagnoser]
 public class Benchmark
 {
     private IServiceProvider? rootServiceProvider;
@@ -44,36 +43,6 @@ public class Benchmark
         mediatrSender = scopedServiceProvider.ServiceProvider.GetService<MediatR.ISender>()!;
     }
 
-    //[IterationSetup]
-    //public void IterationSetup()
-    //{
-    //    scopedServiceProvider = rootServiceProvider.CreateScope();
-    //    mediatorCorePublisher = scopedServiceProvider.ServiceProvider.GetService<MediatorCore.Publisher.IPublisher>()!;
-    //    mediatrPublisher = scopedServiceProvider.ServiceProvider.GetService<MediatR.IPublisher>()!;
-    //    mediatrSender = scopedServiceProvider.ServiceProvider.GetService<MediatR.ISender>()!;
-    //}
-
-    //[IterationCleanup]
-    //public void IterationCleanup()
-    //{
-    //    scopedServiceProvider.Dispose();
-    //    GC.Collect();
-    //}
-
-    //[GlobalCleanup]
-    //public void Dispose()
-    //{
-    //    cancellationToken!.Cancel();
-
-    //    var services = rootServiceProvider!.GetServices<IHostedService>();
-    //    foreach (var service in services)
-    //    {
-    //        service.StopAsync(cancellationToken.Token);
-    //    }
-
-    //    cancellationToken.Dispose();
-    //}
-
     [Benchmark]
     public async Task<SimpleResponse> Response_MediatorCore()
     {
@@ -84,7 +53,8 @@ public class Benchmark
     [Benchmark]
     public async Task<SimpleResponse> Response_MediatR()
     {
-        return await mediatrSender.Send(request);
+        return await mediatrSender
+            .Send(request);
     }
 
     [Benchmark]

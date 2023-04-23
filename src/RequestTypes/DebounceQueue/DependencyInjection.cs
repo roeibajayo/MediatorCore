@@ -1,4 +1,5 @@
 ﻿using MediatorCore.Infrastructure;
+using MediatorCore.Publisher;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 
@@ -23,11 +24,13 @@ internal static class DependencyInjection
             var serviceInterface = typeof(IDebounceQueueBackgroundService<>)
                 .MakeGenericType(messageType);
             services.AddSingleton(serviceInterface, serviceType);
-            services.AddTransient(s => s.GetRequiredService(serviceInterface) as IHostedService);
+            services.AddSingleton(s => s.GetRequiredService(serviceInterface) as IHostedService);
 
             var handlerInterface = typeof(IBaseDebounceQueue<>)
                 .MakeGenericType(messageType);
-            services.AddScoped(handlerInterface, handler);
+            services.Add(new ServiceDescriptor(handlerInterface,
+                handler,
+                MediatorCoreOptions.instance.HandlersLifetime));
         }
     }
 }

@@ -67,15 +67,19 @@ public class Example
 ```
 
 ## Benchmarks vs MediatR:
-|                            Method |     Mean |   Error |  StdDev | Allocated |
-|---------------------------------- |---------:|--------:|--------:|----------:|
-|             Response_MediatorCore | 224.4 ns | 3.92 ns | 3.48 ns |     384 B |
-|                  Response_MediatR | 234.7 ns | 3.92 ns | 3.67 ns |     464 B |
-| ParallelNotification_MediatorCore | 234.0 ns | 4.57 ns | 4.49 ns |     182 B |
-|      ParallelNotification_MediatR | 254.2 ns | 3.90 ns | 3.45 ns |     496 B |
+|                                        Method |          Mean |       Error |      StdDev | Allocated |
+|---------------------------------------------- |--------------:|------------:|------------:|----------:|
+|                         Response_MediatorCore | 32,394.786 us | 641.2623 us | 763.3772 us |     996 B |
+|                              Response_MediatR | 32,578.816 us | 611.8009 us | 572.2789 us |     812 B |
+|                                                                                                       |
+|      ParallelNotification_Simple_MediatorCore |      1.638 us |   0.0327 us |   0.0751 us |     848 B |
+|           ParallelNotification_Simple_MediatR |      2.470 us |   0.0489 us |   0.1084 us |     872 B |
+|                                                                                                       |
+| ParallelNotification_LongRunning_MediatorCore |      2.848 us |   0.0569 us |   0.0919 us |    1128 B |
+|      ParallelNotification_LongRunning_MediatR |      3.205 us |   0.0634 us |   0.0846 us |    1160 B |
 
 ## Roadmap:
-- Regisaration validations
+- Registration validations
 - More handlers types
 - More unitests
 - More examples of use

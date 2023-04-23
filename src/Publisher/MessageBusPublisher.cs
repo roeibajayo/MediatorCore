@@ -20,64 +20,51 @@ internal sealed class MessageBusPublisher : IPublisher
 
     public void Publish<TMessage>(TMessage message, CancellationToken cancellationToken = default)
     {
+        dynamic handler = this;
+
         if (message is IAccumulatorQueueMessage)
         {
-            dynamic handler = this;
             handler.HandleAccumulatorQueueMessage<TMessage>(message);
             return;
         }
 
         if (message is IQueueMessage)
         {
-            dynamic handler = this;
             handler.HandleQueueMessage<TMessage>(message);
             return;
         }
 
         if (message is IStackMessage)
         {
-            dynamic handler = this;
             handler.HandleStackMessage<TMessage>(message);
             return;
         }
 
         if (message is IDebounceQueueMessage)
         {
-            dynamic handler = this;
             handler.HandleDebounceQueueMessage<TMessage>(message);
             return;
         }
 
-        if (message is IFireAndForgetMessage ||
-            message is IBubblingNotificationMessage)
+        if (message is IFireAndForgetMessage)
         {
-            var taskRunnerMessage = new TaskRunnerMessage(message, cancellationToken);
-            var service = serviceProvider.GetService<TaskRunnerBackgroundService>()!;
-            service.Enqueue(taskRunnerMessage);
+            handler.HandleFireAndForget<TMessage>(message);
+            return;
+        }
+
+        if (message is IBubblingNotificationMessage)
+        {
+            handler.HandleBubblingNotifications<TMessage>(message);
             return;
         }
 
         if (message is IParallelNotificationMessage)
         {
-            ExecuteParallelHandlers(message);
+            handler.HandleParallelNotifications<TMessage>(message);
             return;
         }
 
         throw new NotSupportedException();
-    }
-
-    private async void ExecuteParallelHandlers<TMessage>(TMessage message)
-    {
-        //todo: use dic instead for using a scope in each handler
-        using var scope = serviceProvider.CreateScope();
-        var handlersType = TaskRunnerBackgroundService._parallelHandlers[typeof(TMessage)];
-        var handlers = scope.ServiceProvider
-            .GetServices(handlersType)
-            .Select(handler => handler as IBaseParallelNotificationHandler);
-        var tasks = handlers
-            .Select(handler => handler!.Handle(message));
-        await Task
-            .WhenAll(tasks);
     }
 
     public async Task<TResponse> GetResponseAsync<TResponse>(IResponseMessage<TResponse> message) =>
@@ -116,6 +103,40 @@ internal sealed class MessageBusPublisher : IPublisher
         var services = serviceProvider.GetServices<StackBackgroundService<TMessage>>();
         foreach (var service in services)
             service.Push(message);
+    }
+
+    private async void HandleFireAndForget<TMessage>(TMessage message)
+        where TMessage : IFireAndForgetMessage
+    {
+        var handlers = serviceProvider
+            .GetServices<IFireAndForgetHandler<TMessage>>();
+
+        await Task
+            .WhenAll(handlers.Select(x => x.HandleAsync(message, default)));
+    }
+
+    private async void HandleBubblingNotifications<TMessage>(TMessage message)
+        where TMessage : IBubblingNotificationMessage
+    {
+        var handlers = RequestTypes.Notification.DependencyInjection._bubblingHandlers[typeof(TMessage)]
+            .Select(handlerType => serviceProvider.GetService(handlerType)!);
+        foreach (var handler in handlers.Select(handler => handler! as IBaseBubblingNotification<TMessage>))
+        {
+            if (!await handler!.HandleAsync(message))
+            {
+                break;
+            }
+        }
+    }
+
+    private async void HandleParallelNotifications<TMessage>(TMessage message)
+        where TMessage : IParallelNotificationMessage
+    {
+        var handlers = serviceProvider
+            .GetServices<IParallelNotificationHandler<TMessage>>();
+
+        await Task
+            .WhenAll(handlers.Select(handler => handler!.Handle(message)));
     }
 
     private async Task<TResponse> HandleResponseMessageAsync<TResponse>(IResponseMessage<TResponse> message,

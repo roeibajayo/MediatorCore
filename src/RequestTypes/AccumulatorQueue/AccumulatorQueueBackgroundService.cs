@@ -33,24 +33,25 @@ internal sealed class AccumulatorQueueBackgroundService<TMessage, TOptions> :
 
     protected override async Task OnExecuteAsync(CancellationToken cancellationToken)
     {
-        var list = new List<TMessage>(queue.Count);
+        var items = new List<TMessage>(queue.Count);
         while (!cancellationToken.IsCancellationRequested &&
-            (options.MaxItemsOnDequeue is null || options.MaxItemsOnDequeue < list.Count) &&
+            (options.MaxItemsOnDequeue is null || options.MaxItemsOnDequeue < items.Count) &&
             queue.TryDequeue(out var item))
         {
-            list.Add(item);
+            items.Add(item);
         }
 
-        if (list.Count == 0)
+        if (items.Count == 0)
             return;
 
-        _ = Task.Run(async () =>
-        {
-            using var scope = serviceScopeFactory.CreateScope();
-            var handlerInstance = scope.ServiceProvider.GetService<IBaseAccumulatorQueue<TMessage>>();
-            await handlerInstance.HandleAsync(list);
-        })
-            .ConfigureAwait(false);
+        ProcessItems(items);
+    }
+
+    private async void ProcessItems(IEnumerable<TMessage> items)
+    {
+        using var scope = serviceScopeFactory.CreateScope();
+        var handlerInstance = scope.ServiceProvider.GetService<IBaseAccumulatorQueue<TMessage>>();
+        await handlerInstance.HandleAsync(items);
     }
 
     public void Enqueue(TMessage item)
