@@ -22,49 +22,32 @@ internal sealed class MessageBusPublisher : IPublisher
     {
         dynamic handler = this;
 
-        if (message is IAccumulatorQueueMessage)
+        switch (message)
         {
-            handler.HandleAccumulatorQueueMessage<TMessage>(message);
-            return;
+            case IAccumulatorQueueMessage:
+                handler.HandleAccumulatorQueueMessage<TMessage>(message);
+                break;
+            case IQueueMessage:
+                handler.HandleQueueMessage<TMessage>(message);
+                break;
+            case IStackMessage:
+                handler.HandleStackMessage<TMessage>(message);
+                break;
+            case IDebounceQueueMessage:
+                handler.HandleDebounceQueueMessage<TMessage>(message);
+                break;
+            case IFireAndForgetMessage:
+                handler.HandleFireAndForgetMessage<TMessage>(message);
+                break;
+            case IBubblingNotificationMessage:
+                handler.HandleBubblingNotificationMessage<TMessage>(message);
+                break;
+            case IParallelNotificationMessage:
+                handler.HandleParallelNotificationMessage<TMessage>(message);
+                break;
+            default:
+                throw new NotSupportedException();
         }
-
-        if (message is IQueueMessage)
-        {
-            handler.HandleQueueMessage<TMessage>(message);
-            return;
-        }
-
-        if (message is IStackMessage)
-        {
-            handler.HandleStackMessage<TMessage>(message);
-            return;
-        }
-
-        if (message is IDebounceQueueMessage)
-        {
-            handler.HandleDebounceQueueMessage<TMessage>(message);
-            return;
-        }
-
-        if (message is IFireAndForgetMessage)
-        {
-            handler.HandleFireAndForget<TMessage>(message);
-            return;
-        }
-
-        if (message is IBubblingNotificationMessage)
-        {
-            handler.HandleBubblingNotifications<TMessage>(message);
-            return;
-        }
-
-        if (message is IParallelNotificationMessage)
-        {
-            handler.HandleParallelNotifications<TMessage>(message);
-            return;
-        }
-
-        throw new NotSupportedException();
     }
 
     public async Task<TResponse> GetResponseAsync<TResponse>(IResponseMessage<TResponse> message) =>
@@ -105,7 +88,7 @@ internal sealed class MessageBusPublisher : IPublisher
             service.Push(message);
     }
 
-    private async void HandleFireAndForget<TMessage>(TMessage message)
+    private async void HandleFireAndForgetMessage<TMessage>(TMessage message)
         where TMessage : IFireAndForgetMessage
     {
         var handlers = serviceProvider
@@ -115,7 +98,7 @@ internal sealed class MessageBusPublisher : IPublisher
             .WhenAll(handlers.Select(x => x.HandleAsync(message, default)));
     }
 
-    private async void HandleBubblingNotifications<TMessage>(TMessage message)
+    private async void HandleBubblingNotificationMessage<TMessage>(TMessage message)
         where TMessage : IBubblingNotificationMessage
     {
         var handlers = RequestTypes.Notification.DependencyInjection._bubblingHandlers[typeof(TMessage)]
@@ -129,7 +112,7 @@ internal sealed class MessageBusPublisher : IPublisher
         }
     }
 
-    private async void HandleParallelNotifications<TMessage>(TMessage message)
+    private async void HandleParallelNotificationMessage<TMessage>(TMessage message)
         where TMessage : IParallelNotificationMessage
     {
         var handlers = serviceProvider
