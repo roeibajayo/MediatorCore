@@ -101,9 +101,8 @@ internal sealed class MessageBusPublisher : IPublisher
     private async void HandleBubblingNotificationMessage<TMessage>(TMessage message)
         where TMessage : IBubblingNotificationMessage
     {
-        var handlers = RequestTypes.Notification.DependencyInjection._bubblingHandlers[typeof(TMessage)]
-            .Select(handlerType => serviceProvider.GetService(handlerType)!);
-        foreach (var handler in handlers.Select(handler => handler! as IBaseBubblingNotification<TMessage>))
+        var handlers = serviceProvider.GetServices<IBaseBubblingNotification<TMessage>>();
+        foreach (var handler in handlers)
         {
             if (!await handler!.HandleAsync(message))
             {

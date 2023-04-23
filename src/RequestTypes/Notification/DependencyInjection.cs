@@ -11,8 +11,6 @@ internal static class DependencyInjection
         services.AddParallelNotificationHandlers<TMarker>();
     }
 
-    internal static IDictionary<Type, Type[]> _bubblingHandlers =
-        new Dictionary<Type, Type[]>();
 
     private static void AddBubblingNotificationHandlers<TMarker>(this IServiceCollection services)
     {
@@ -39,14 +37,17 @@ internal static class DependencyInjection
                 orders.Add(messageType,
                     new List<(Type, IBubblingNotificationOptions)> { (handler, options!) });
             }
-
-            services.Add(new ServiceDescriptor(handler,
-                handler,
-                MediatorCoreOptions.instance.HandlersLifetime));
         }
 
-        _bubblingHandlers = orders.ToDictionary(x => x.Key,
-            x => x.Value.OrderBy(y => y.Item2.Sort).Select(y => y.Item1).ToArray());
+        foreach (var foundHandlers in orders)
+        {
+            foreach (var handler in foundHandlers.Value.OrderBy(x => x.Item2.Sort).Select(x => x.Item1))
+            {
+                services.Add(new ServiceDescriptor(typeof(IBaseBubblingNotification<>).MakeGenericType(foundHandlers.Key),
+                    handler,
+                    MediatorCoreOptions.instance.HandlersLifetime));
+            }
+        }
     }
     private static void AddParallelNotificationHandlers<TMarker>(this IServiceCollection services)
     {
