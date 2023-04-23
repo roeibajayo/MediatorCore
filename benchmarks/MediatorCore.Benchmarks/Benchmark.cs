@@ -37,37 +37,42 @@ public class Benchmark
         {
             service.StartAsync(cancellationToken.Token);
         }
-    }
 
-    [IterationSetup]
-    public void IterationSetup()
-    {
         scopedServiceProvider = rootServiceProvider.CreateScope();
         mediatorCorePublisher = scopedServiceProvider.ServiceProvider.GetService<MediatorCore.Publisher.IPublisher>()!;
         mediatrPublisher = scopedServiceProvider.ServiceProvider.GetService<MediatR.IPublisher>()!;
         mediatrSender = scopedServiceProvider.ServiceProvider.GetService<MediatR.ISender>()!;
     }
 
-    [IterationCleanup]
-    public void IterationCleanup()
-    {
-        scopedServiceProvider.Dispose();
-        GC.Collect();
-    }
+    //[IterationSetup]
+    //public void IterationSetup()
+    //{
+    //    scopedServiceProvider = rootServiceProvider.CreateScope();
+    //    mediatorCorePublisher = scopedServiceProvider.ServiceProvider.GetService<MediatorCore.Publisher.IPublisher>()!;
+    //    mediatrPublisher = scopedServiceProvider.ServiceProvider.GetService<MediatR.IPublisher>()!;
+    //    mediatrSender = scopedServiceProvider.ServiceProvider.GetService<MediatR.ISender>()!;
+    //}
 
-    [GlobalCleanup]
-    public void Dispose()
-    {
-        cancellationToken!.Cancel();
+    //[IterationCleanup]
+    //public void IterationCleanup()
+    //{
+    //    scopedServiceProvider.Dispose();
+    //    GC.Collect();
+    //}
 
-        var services = rootServiceProvider!.GetServices<IHostedService>();
-        foreach (var service in services)
-        {
-            service.StopAsync(cancellationToken.Token);
-        }
+    //[GlobalCleanup]
+    //public void Dispose()
+    //{
+    //    cancellationToken!.Cancel();
 
-        cancellationToken.Dispose();
-    }
+    //    var services = rootServiceProvider!.GetServices<IHostedService>();
+    //    foreach (var service in services)
+    //    {
+    //        service.StopAsync(cancellationToken.Token);
+    //    }
+
+    //    cancellationToken.Dispose();
+    //}
 
     [Benchmark]
     public async Task<SimpleResponse> Response_MediatorCore()
