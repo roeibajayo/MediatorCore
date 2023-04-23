@@ -1,4 +1,5 @@
-﻿using MediatorCore.Publisher;
+﻿using MediatorCore;
+using MediatorCore.Publisher;
 using MediatorCore.RequestTypes.AccumulatorQueue;
 using MediatorCore.RequestTypes.DebounceQueue;
 using MediatorCore.RequestTypes.FireAndForget;
@@ -19,7 +20,7 @@ public static class DependencyInjection
     /// <param name="services"></param>
     /// <param name="options">Global MediatorCore configuration</param>
     /// <returns></returns>
-    public static IServiceCollection AddMediatorCore<TMarker>(this IServiceCollection services, 
+    public static IServiceCollection AddMediatorCore<TMarker>(this IServiceCollection services,
         Action<MediatorCoreOptions>? options = null)
     {
         if (!services.Any(x => x.ServiceType == typeof(IPublisher)))
@@ -27,7 +28,7 @@ public static class DependencyInjection
             MediatorCoreOptions.instance = new MediatorCoreOptions();
             options?.Invoke(MediatorCoreOptions.instance);
 
-            services.Add(new ServiceDescriptor(typeof(IPublisher), 
+            services.Add(new ServiceDescriptor(typeof(IPublisher),
                 typeof(MessageBusPublisher),
                 MediatorCoreOptions.instance.HandlersLifetime));
         }

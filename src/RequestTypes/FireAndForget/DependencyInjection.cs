@@ -1,5 +1,4 @@
 ﻿using MediatorCore.Infrastructure;
-using MediatorCore.Publisher;
 using Microsoft.Extensions.DependencyInjection;
 
 namespace MediatorCore.RequestTypes.FireAndForget;

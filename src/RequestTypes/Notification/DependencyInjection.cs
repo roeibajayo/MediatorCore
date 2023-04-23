@@ -1,5 +1,4 @@
 ﻿using MediatorCore.Infrastructure;
-using MediatorCore.Publisher;
 using Microsoft.Extensions.DependencyInjection;
 
 namespace MediatorCore.RequestTypes.Notification;
@@ -46,7 +45,7 @@ internal static class DependencyInjection
                 MediatorCoreOptions.instance.HandlersLifetime));
         }
 
-        _bubblingHandlers = orders.ToDictionary(x => x.Key, 
+        _bubblingHandlers = orders.ToDictionary(x => x.Key,
             x => x.Value.OrderBy(y => y.Item2.Sort).Select(y => y.Item1).ToArray());
     }
     private static void AddParallelNotificationHandlers<TMarker>(this IServiceCollection services)

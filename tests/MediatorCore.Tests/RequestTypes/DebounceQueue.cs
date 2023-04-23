@@ -1,5 +1,4 @@
-﻿using MediatorCore.Publisher;
-using MediatorCore.RequestTypes.DebounceQueue;
+﻿using MediatorCore.RequestTypes.DebounceQueue;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 

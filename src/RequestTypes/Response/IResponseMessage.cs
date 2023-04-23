@@ -1,3 +1,3 @@
 ﻿namespace MediatorCore.RequestTypes.Response;
 
-public interface IResponseMessage<TResponse> { } 
+public interface IResponseMessage<TResponse> { }

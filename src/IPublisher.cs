@@ -1,6 +1,6 @@
 ﻿using MediatorCore.RequestTypes.Response;
 
-namespace MediatorCore.Publisher
+namespace MediatorCore
 {
     public interface IPublisher
     {

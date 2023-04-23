@@ -1,6 +1,6 @@
 ﻿using Microsoft.Extensions.DependencyInjection;
 
-namespace MediatorCore.Publisher;
+namespace MediatorCore;
 
 public class MediatorCoreOptions
 {

@@ -1,4 +1,3 @@
-using MediatorCore.Publisher;
 using MediatorCore.RequestTypes.Stack;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;

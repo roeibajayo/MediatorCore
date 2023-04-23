@@ -1,5 +1,4 @@
 ﻿using MediatorCore.Infrastructure;
-using MediatorCore.Publisher;
 using Microsoft.Extensions.DependencyInjection;
 
 namespace MediatorCore.RequestTypes.Response;
@@ -35,16 +34,16 @@ internal static class DependencyInjection
 
 internal abstract class BaseResponseHandlerWrapper<TResponse>
 {
-    internal abstract Task<TResponse> HandleAsync(IResponseMessage<TResponse> request, 
+    internal abstract Task<TResponse> HandleAsync(IResponseMessage<TResponse> request,
         IServiceProvider serviceProvider,
         CancellationToken cancellationToken);
 }
 
-internal class ResponseHandlerWrapper<TRequest, TResponse> : 
+internal class ResponseHandlerWrapper<TRequest, TResponse> :
     BaseResponseHandlerWrapper<TResponse>
     where TRequest : IResponseMessage<TResponse>
 {
-    internal override Task<TResponse> HandleAsync(IResponseMessage<TResponse> request, 
+    internal override Task<TResponse> HandleAsync(IResponseMessage<TResponse> request,
         IServiceProvider serviceProvider,
         CancellationToken cancellationToken)
     {

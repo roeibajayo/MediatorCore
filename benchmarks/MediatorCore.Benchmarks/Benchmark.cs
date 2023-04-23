@@ -1,6 +1,5 @@
 ﻿using BenchmarkDotNet.Attributes;
 using MediatorCore.Benchmarks.RequestTypes;
-using MediatorCore.Publisher;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 
@@ -38,7 +37,7 @@ public class Benchmark
         }
 
         scopedServiceProvider = rootServiceProvider.CreateScope();
-        mediatorCorePublisher = scopedServiceProvider.ServiceProvider.GetService<MediatorCore.Publisher.IPublisher>()!;
+        mediatorCorePublisher = scopedServiceProvider.ServiceProvider.GetService<IPublisher>()!;
         mediatrPublisher = scopedServiceProvider.ServiceProvider.GetService<MediatR.IPublisher>()!;
         mediatrSender = scopedServiceProvider.ServiceProvider.GetService<MediatR.ISender>()!;
     }
