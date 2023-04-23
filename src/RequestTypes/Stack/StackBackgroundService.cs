@@ -31,15 +31,15 @@ internal sealed class StackBackgroundService<TMessage> :
             if (!messageResult.Success)
                 continue;
 
-            _ = Task.Run(async () =>
-            {
-                using var scope = serviceScopeFactory.CreateScope();
-                var handler = scope.ServiceProvider.GetService(typeof(IStackHandler<TMessage>))
-                    as IStackHandler<TMessage>;
-                await handler.HandleAsync(messageResult.Item);
-            })
-                .ConfigureAwait(false);
+            ProcessItem(messageResult.Item);
         }
+    }
+
+    private async void ProcessItem(TMessage item)
+    {
+        using var scope = serviceScopeFactory.CreateScope();
+        var handler = scope.ServiceProvider.GetService<IStackHandler<TMessage>>();
+        await handler.HandleAsync(item);
     }
 
     public Task StopAsync(CancellationToken cancellationToken)

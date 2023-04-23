@@ -31,15 +31,15 @@ internal sealed class QueueBackgroundService<TMessage> :
             if (!messageResult.Success)
                 continue;
 
-            _ = Task.Run(async () =>
-            {
-                using var scope = serviceScopeFactory.CreateScope();
-                var handler = scope.ServiceProvider.GetService(typeof(IQueueHandler<TMessage>))
-                    as IQueueHandler<TMessage>;
-                await handler.HandleAsync(messageResult.Item);
-            })
-                .ConfigureAwait(false);
+            ProcessItem(messageResult);
         }
+    }
+
+    private async void ProcessItem((bool Success, TMessage Item) messageResult)
+    {
+        using var scope = serviceScopeFactory.CreateScope();
+        var handler = scope.ServiceProvider.GetService<IQueueHandler<TMessage>>();
+        await handler.HandleAsync(messageResult.Item);
     }
 
     public Task StopAsync(CancellationToken cancellationToken)

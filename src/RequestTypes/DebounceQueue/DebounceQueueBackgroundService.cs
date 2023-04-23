@@ -43,15 +43,15 @@ internal sealed class DebounceQueueBackgroundService<TMessage, TOptions> :
             if (!messageResult.Success)
                 continue;
 
-            _ = Task.Run(async () =>
-            {
-                using var scope = serviceScopeFactory.CreateScope();
-                var handler = scope.ServiceProvider.GetService(typeof(IBaseDebounceQueue<TMessage>))
-                    as IBaseDebounceQueue<TMessage>;
-                await handler.HandleAsync(messageResult.Item);
-            })
-                .ConfigureAwait(false);
+            ProcessItem(messageResult.Item);
         }
+    }
+
+    private async void ProcessItem(TMessage item)
+    {
+        using var scope = serviceScopeFactory.CreateScope();
+        var handler = scope.ServiceProvider.GetService<IBaseDebounceQueue<TMessage>>();
+        await handler.HandleAsync(item);
     }
 
     public Task StopAsync(CancellationToken cancellationToken)
