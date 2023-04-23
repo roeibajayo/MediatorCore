@@ -16,10 +16,10 @@ public static class DependencyInjection
     {
         if (!services.Any(x => x.ServiceType == typeof(IPublisher)))
         {
-            services.AddSingleton<IPublisher, MessageBusPublisher>();
+            services.AddScoped<IPublisher, MessageBusPublisher>();
             services.AddSingleton<TaskRunnerBackgroundService>();
             services.AddTransient<IHostedService>((s) => s.GetService<TaskRunnerBackgroundService>()!);
-            services.AddMediatorCore<IPublisher>();
+            //services.AddMediatorCore<IPublisher>();
         }
 
         services.AddAccumulatorQueueHandlers<TMarker>();

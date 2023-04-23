@@ -14,18 +14,18 @@ internal sealed class DebounceQueueBackgroundService<TMessage, TOptions> :
     where TMessage : class, IDebounceQueueMessage
     where TOptions : class, IDebounceQueueOptions
 {
-    private readonly IServiceProvider serviceProvider;
+    private readonly IServiceScopeFactory serviceScopeFactory;
     private readonly LockingDebounceQueue<TMessage> queue;
     private bool running = true;
 
-    public DebounceQueueBackgroundService(IServiceProvider serviceProvider) :
-        this(serviceProvider, GetOptions())
+    public DebounceQueueBackgroundService(IServiceScopeFactory serviceScopeFactory) :
+        this(serviceScopeFactory, GetOptions())
     {
     }
 
-    public DebounceQueueBackgroundService(IServiceProvider serviceProvider, TOptions options)
+    public DebounceQueueBackgroundService(IServiceScopeFactory servicScopeFactory, TOptions options)
     {
-        this.serviceProvider = serviceProvider;
+        this.serviceScopeFactory = servicScopeFactory;
         queue = new LockingDebounceQueue<TMessage>(options.DebounceMs);
     }
 
@@ -45,7 +45,7 @@ internal sealed class DebounceQueueBackgroundService<TMessage, TOptions> :
 
             _ = Task.Run(async () =>
             {
-                using var scope = serviceProvider.CreateScope();
+                using var scope = serviceScopeFactory.CreateScope();
                 var handler = scope.ServiceProvider.GetService(typeof(IBaseDebounceQueue<TMessage>))
                     as IBaseDebounceQueue<TMessage>;
                 await handler.HandleAsync(messageResult.Item);

@@ -9,17 +9,17 @@ using System.Reflection;
 namespace MediatorCore.Publisher;
 
 internal record TaskRunnerMessage(object Message, CancellationToken CancellationToken) : IQueueMessage;
-internal class TaskRunnerBackgroundService : IHostedService, IDisposable
+internal class TaskRunnerBackgroundService : IHostedService
 {
-    private readonly IServiceProvider serviceProvider;
+    private readonly IServiceScopeFactory serviceScopeFactory;
     private readonly LockingQueue<TaskRunnerMessage> _queue = new();
     private readonly IDictionary<string, MethodInfo> _methodInfos = new Dictionary<string, MethodInfo>();
     internal static readonly IDictionary<Type, Type> _parallelHandlers = new Dictionary<Type, Type>();
     private bool running = true;
 
-    public TaskRunnerBackgroundService(IServiceProvider serviceProvider)
+    public TaskRunnerBackgroundService(IServiceScopeFactory serviceScopeFactory)
     {
-        this.serviceProvider = serviceProvider;
+        this.serviceScopeFactory = serviceScopeFactory;
 
         var handlers = GetType()
             .GetMethods(BindingFlags.NonPublic | BindingFlags.Instance)
@@ -67,23 +67,22 @@ internal class TaskRunnerBackgroundService : IHostedService, IDisposable
 
         if (message.Message is IParallelNotificationMessage)
         {
-            _ = Task.Factory.StartNew(async () =>
+            _ = Task.Run(async () =>
             {
                 //todo: use dic instead for using a scope in each handler
-                using var scope = serviceProvider.CreateScope();
+                using var scope = serviceScopeFactory.CreateScope();
                 var handlersType = _parallelHandlers[message.Message.GetType()];
                 var handlers = scope.ServiceProvider
                     .GetServices(handlersType)
                     .Select(handler => handler as IBaseParallelNotificationHandler);
                 var tasks = handlers
-                    .Select(handler => handler!.Handle(message.Message))
-                    .ToArray();
+                    .Select(handler => handler!.Handle(message.Message));
 
                 await Task
                     .WhenAll(tasks)
                     .ConfigureAwait(false);
-            }, TaskCreationOptions.AttachedToParent);
-
+            })
+                .ConfigureAwait(false);
             return;
         }
 
@@ -96,12 +95,12 @@ internal class TaskRunnerBackgroundService : IHostedService, IDisposable
     {
         _ = Task.Run(async () =>
         {
-            using var scope = serviceProvider.CreateScope();
+            using var scope = serviceScopeFactory.CreateScope();
             //todo: use dic instead for using a scope in each handler
             var handlers = scope.ServiceProvider.GetServices<IFireAndForgetHandler<TMessage>>();
             foreach (var handler in handlers)
                 await handler.HandleAsync(message, cancellationToken);
-        })
+        });
     }
 
     private void HandleBubblingNotificationMessage<TMessage>(TMessage message)
@@ -109,7 +108,7 @@ internal class TaskRunnerBackgroundService : IHostedService, IDisposable
     {
         _ = Task.Run(async () =>
         {
-            using var scope = serviceProvider.CreateScope();
+            using var scope = serviceScopeFactory.CreateScope();
             var handlers = RequestTypes.Notification.DependencyInjection._bubblingHandlers[typeof(TMessage)]
                 .Select(handlerType => scope.ServiceProvider.GetService(handlerType)!);
             foreach (var handler in handlers.Select(handler => handler! as IBaseBubblingNotification<TMessage>))
@@ -119,20 +118,6 @@ internal class TaskRunnerBackgroundService : IHostedService, IDisposable
                     break;
                 }
             }
-        });
-    }
-
-    private void HandleParallelNotificationMessage<TMessage>(TMessage message)
-        where TMessage : IParallelNotificationMessage
-    {
-        _ = Task.Factory.StartNew(async () =>
-        {
-            using var scope = serviceProvider.CreateScope();
-            //todo: use dic instead for using a scope in each handler
-            var handlers = scope.ServiceProvider
-                .GetServices(typeof(IParallelNotificationHandler<TMessage>));
-            await Task.WhenAll(handlers
-                .Select(handler => (handler as IParallelNotificationHandler<TMessage>)!.HandleAsync(message)));
         });
     }
 

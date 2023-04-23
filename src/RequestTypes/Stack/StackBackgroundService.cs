@@ -8,13 +8,13 @@ internal sealed class StackBackgroundService<TMessage> :
     IHostedService
     where TMessage : IStackMessage
 {
-    private readonly IServiceProvider serviceProvider;
+    private readonly IServiceScopeFactory serviceScopeFactory;
     private readonly LockingStack<TMessage> stack = new();
     private bool running = true;
 
-    public StackBackgroundService(IServiceProvider serviceProvider)
+    public StackBackgroundService(IServiceScopeFactory serviceScopeFactory)
     {
-        this.serviceProvider = serviceProvider;
+        this.serviceScopeFactory = serviceScopeFactory;
     }
 
     internal void Push(TMessage message)
@@ -33,7 +33,7 @@ internal sealed class StackBackgroundService<TMessage> :
 
             _ = Task.Run(async () =>
             {
-                using var scope = serviceProvider.CreateScope();
+                using var scope = serviceScopeFactory.CreateScope();
                 var handler = scope.ServiceProvider.GetService(typeof(IStackHandler<TMessage>))
                     as IStackHandler<TMessage>;
                 await handler.HandleAsync(messageResult.Item);

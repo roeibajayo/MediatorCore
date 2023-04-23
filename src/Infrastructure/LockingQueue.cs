@@ -20,7 +20,7 @@ internal sealed class LockingQueue<T> : ConcurrentQueue<T>, IDisposable
     public void Dispose()
     {
         running = false;
-        waitingLocker.Release();
+        waitingLocker?.Release();
     }
 
     internal void Enqueue(IEnumerable<T> items)

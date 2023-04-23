@@ -15,19 +15,19 @@ internal sealed class AccumulatorQueueBackgroundService<TMessage, TOptions> :
     where TOptions : class, IAccumulatorQueueOptions
 {
     private readonly ConcurrentQueue<TMessage> queue;
-    private readonly IServiceProvider serviceProvider;
+    private readonly IServiceScopeFactory serviceScopeFactory;
     private readonly TOptions options;
 
-    public AccumulatorQueueBackgroundService(IServiceProvider serviceProvider) :
-        this(serviceProvider, GetOptions())
+    public AccumulatorQueueBackgroundService(IServiceScopeFactory serviceScopeFactory) :
+        this(serviceScopeFactory, GetOptions())
     {
     }
 
-    public AccumulatorQueueBackgroundService(IServiceProvider serviceProvider, TOptions options) :
+    public AccumulatorQueueBackgroundService(IServiceScopeFactory serviceScopeFactory, TOptions options) :
         base(options.MsInterval)
     {
         queue = new ConcurrentQueue<TMessage>();
-        this.serviceProvider = serviceProvider;
+        this.serviceScopeFactory = serviceScopeFactory;
         this.options = Activator.CreateInstance<TOptions>();
     }
 
@@ -46,10 +46,11 @@ internal sealed class AccumulatorQueueBackgroundService<TMessage, TOptions> :
 
         _ = Task.Run(async () =>
         {
-            using var scope = serviceProvider.CreateScope();
+            using var scope = serviceScopeFactory.CreateScope();
             var handlerInstance = scope.ServiceProvider.GetService<IBaseAccumulatorQueue<TMessage>>();
             await handlerInstance.HandleAsync(list);
-        });
+        })
+            .ConfigureAwait(false);
     }
 
     public void Enqueue(TMessage item)

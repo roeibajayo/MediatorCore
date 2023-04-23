@@ -25,7 +25,7 @@ internal sealed class LockingDebounceQueue<T> : IDisposable
     {
         running = false;
 
-        waitingLocker.Release();
+        waitingLocker?.Release();
     }
 
     internal void Enqueue(T item)

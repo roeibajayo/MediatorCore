@@ -25,7 +25,7 @@ public class ParallelNotification : BaseUnitTest
         }
 
         //Assert
-        for (var i = 0; i < 10; i++)
+        for (var i = 0; i < 20; i++)
         {
             if (ReceivedDebugs(logger, "ParallelNotification1Message: " + id) == counts &&
                 ReceivedDebugs(logger, "ParallelNotification2Message: " + id) == counts)

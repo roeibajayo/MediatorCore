@@ -1,6 +1,5 @@
 ﻿using BenchmarkDotNet.Attributes;
 using MediatorCore.Benchmarks.RequestTypes;
-using MediatR;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 
@@ -10,12 +9,9 @@ namespace MediatorCore.Benchmarks;
 [ExceptionDiagnoser]
 public class Benchmark
 {
-    private IServiceProvider? serviceProvider;
+    private IServiceProvider? rootServiceProvider;
     private CancellationTokenSource? cancellationToken;
-    private IServiceProvider? scopedServiceProvider;
-    private Publisher.IPublisher? mediatorCorePublihser;
-    private IPublisher? mediatrPublihser;
-    private ISender? mediatrSender;
+
     private SimpleResponseMessage request = new(1);
     private SimpleParallelNotificationMessage simpleParallelNotification = new(1);
     private LongRunningParallelNotificationMessage longRunningParallelNotification = new(1);
@@ -26,20 +22,15 @@ public class Benchmark
         var serviceBuilder = new ServiceCollection();
         serviceBuilder.AddMediatorCore<Benchmark>();
         serviceBuilder.AddMediatR(s => s.RegisterServicesFromAssemblyContaining<Benchmark>());
-        serviceProvider = serviceBuilder.BuildServiceProvider();
+        rootServiceProvider = serviceBuilder.BuildServiceProvider();
 
         cancellationToken = new CancellationTokenSource();
 
-        var services = serviceProvider.GetServices<IHostedService>();
+        var services = rootServiceProvider.GetServices<IHostedService>();
         foreach (var service in services)
         {
             service.StartAsync(cancellationToken.Token);
         }
-
-        scopedServiceProvider = serviceProvider.CreateScope().ServiceProvider;
-        mediatorCorePublihser = scopedServiceProvider!.GetService<Publisher.IPublisher>();
-        mediatrPublihser = scopedServiceProvider!.GetService<IPublisher>();
-        mediatrSender = scopedServiceProvider!.GetService<ISender>();
     }
 
     //[Benchmark]
@@ -54,16 +45,16 @@ public class Benchmark
     //    return await mediatrSender!.Send(request);
     //}
 
-    [Benchmark(Description = "ParallelNotification_Simple")]
-    [BenchmarkCategory("MediatorCore")]
-    public void ParallelNotification_Simple1()
+    [Benchmark]
+    public void ParallelNotification_Simple_MediatorCore()
     {
-        mediatorCorePublihser!.Publish(simpleParallelNotification);
+        rootServiceProvider!
+            .GetService<MediatorCore.Publisher.IPublisher>()!
+            .Publish(simpleParallelNotification);
     }
 
-    //[Benchmark(Description = "ParallelNotification_Simple")]
-    //[BenchmarkCategory("MediatR")]
-    //public void ParallelNotification_Simple2()
+    //[Benchmark]
+    //public void ParallelNotification_Simple_MediatR()
     //{
     //    mediatrPublihser!.Publish(simpleParallelNotification);
     //}
@@ -87,7 +78,7 @@ public class Benchmark
     {
         cancellationToken!.Cancel();
 
-        var services = serviceProvider!.GetServices<IHostedService>();
+        var services = rootServiceProvider!.GetServices<IHostedService>();
         foreach (var service in services)
         {
             service.StopAsync(cancellationToken.Token);

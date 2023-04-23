@@ -8,13 +8,13 @@ internal sealed class QueueBackgroundService<TMessage> :
     IHostedService
     where TMessage : IQueueMessage
 {
-    private readonly IServiceProvider serviceProvider;
+    private readonly IServiceScopeFactory serviceScopeFactory;
     private readonly LockingQueue<TMessage> queue = new();
     private bool running = true;
 
-    public QueueBackgroundService(IServiceProvider serviceProvider)
+    public QueueBackgroundService(IServiceScopeFactory serviceScopeFactory)
     {
-        this.serviceProvider = serviceProvider;
+        this.serviceScopeFactory = serviceScopeFactory;
     }
 
     internal void Enqueue(TMessage message)
@@ -33,7 +33,7 @@ internal sealed class QueueBackgroundService<TMessage> :
 
             _ = Task.Run(async () =>
             {
-                using var scope = serviceProvider.CreateScope();
+                using var scope = serviceScopeFactory.CreateScope();
                 var handler = scope.ServiceProvider.GetService(typeof(IQueueHandler<TMessage>))
                     as IQueueHandler<TMessage>;
                 await handler.HandleAsync(messageResult.Item);

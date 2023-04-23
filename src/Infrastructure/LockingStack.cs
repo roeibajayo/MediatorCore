@@ -20,7 +20,7 @@ internal sealed class LockingStack<T> : ConcurrentStack<T>, IDisposable
     public void Dispose()
     {
         running = false;
-        waitingLocker.Release();
+        waitingLocker?.Release();
     }
 
     internal void Push(IEnumerable<T> items)

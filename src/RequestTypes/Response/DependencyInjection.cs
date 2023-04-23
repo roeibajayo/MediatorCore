@@ -25,7 +25,7 @@ internal static class DependencyInjection
 
             var wrapperType = typeof(ResponseHandlerWrapper<,>).MakeGenericType(message, response);
             var wrapper = Activator.CreateInstance(wrapperType);
-            responseHandlers.Add(message, wrapper);
+            responseHandlers!.TryAdd(message, wrapper);
         }
     }
 }
@@ -44,7 +44,7 @@ internal class ResponseHandlerWrapper<TRequest, TResponse> : BaseResponseHandler
         IServiceProvider serviceProvider,
         CancellationToken cancellationToken)
     {
-        return serviceProvider.GetRequiredService<IResponseHandler<TRequest, TResponse>>()
+        return serviceProvider.GetService<IResponseHandler<TRequest, TResponse>>()!
             .HandleAsync((TRequest)request, cancellationToken);
     }
 }

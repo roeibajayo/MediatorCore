@@ -31,10 +31,7 @@ public class BaseUnitTest
             var services = serviceProvider.GetServices<IHostedService>();
             foreach (var service in services)
             {
-                Task.Run(() =>
-                {
-                    service.StartAsync(CancellationToken.None);
-                });
+                service.StartAsync(CancellationToken.None);
             }
 
             _serviceProvider = serviceProvider;

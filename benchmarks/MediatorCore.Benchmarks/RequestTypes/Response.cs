@@ -11,13 +11,15 @@ public class SimpleResponseMessageHandler :
     IRequestHandler<SimpleResponseMessage, SimpleResponse>,
     IResponseHandler<SimpleResponseMessage, SimpleResponse>
 {
-    public Task<SimpleResponse> Handle(SimpleResponseMessage request, CancellationToken cancellationToken)
+    public async Task<SimpleResponse> Handle(SimpleResponseMessage request, CancellationToken cancellationToken)
     {
-        return Task.FromResult(new SimpleResponse(true));
+        await Task.Delay(30);
+        return new SimpleResponse(true);
     }
 
-    public Task<SimpleResponse> HandleAsync(SimpleResponseMessage message, CancellationToken cancellationToken)
+    public async Task<SimpleResponse> HandleAsync(SimpleResponseMessage message, CancellationToken cancellationToken)
     {
-        return Task.FromResult(new SimpleResponse(true));
+        await Task.Delay(30);
+        return new SimpleResponse(true);
     }
 }
