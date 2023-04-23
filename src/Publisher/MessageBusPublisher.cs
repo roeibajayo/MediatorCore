@@ -49,8 +49,7 @@ internal sealed class MessageBusPublisher : IPublisher
         }
 
         if (message is IFireAndForgetMessage ||
-            message is IBubblingNotificationMessage ||
-            message is IParallelNotificationMessage)
+            message is IBubblingNotificationMessage)
         {
             var taskRunnerMessage = new TaskRunnerMessage(message, cancellationToken);
             var service = serviceProvider.GetService<TaskRunnerBackgroundService>()!;
@@ -58,7 +57,27 @@ internal sealed class MessageBusPublisher : IPublisher
             return;
         }
 
+        if (message is IParallelNotificationMessage)
+        {
+            ExecuteParallelHandlers(message);
+            return;
+        }
+
         throw new NotSupportedException();
+    }
+
+    private async void ExecuteParallelHandlers<TMessage>(TMessage message)
+    {
+        //todo: use dic instead for using a scope in each handler
+        using var scope = serviceProvider.CreateScope();
+        var handlersType = TaskRunnerBackgroundService._parallelHandlers[typeof(TMessage)];
+        var handlers = scope.ServiceProvider
+            .GetServices(handlersType)
+            .Select(handler => handler as IBaseParallelNotificationHandler);
+        var tasks = handlers
+            .Select(handler => handler!.Handle(message));
+        await Task
+            .WhenAll(tasks);
     }
 
     public async Task<TResponse> GetResponseAsync<TResponse>(IResponseMessage<TResponse> message) =>

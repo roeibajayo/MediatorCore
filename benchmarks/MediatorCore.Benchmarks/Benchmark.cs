@@ -1,5 +1,6 @@
 ﻿using BenchmarkDotNet.Attributes;
 using MediatorCore.Benchmarks.RequestTypes;
+using MediatorCore.Publisher;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 
@@ -15,6 +16,11 @@ public class Benchmark
     private SimpleResponseMessage request = new(1);
     private SimpleParallelNotificationMessage simpleParallelNotification = new(1);
     private LongRunningParallelNotificationMessage longRunningParallelNotification = new(1);
+
+    private IServiceScope scopedServiceProvider;
+    private IPublisher mediatorCorePublisher;
+    private MediatR.IPublisher mediatrPublisher;
+    private MediatR.ISender mediatrSender;
 
     [GlobalSetup]
     public void Setup()
@@ -33,45 +39,21 @@ public class Benchmark
         }
     }
 
-    //[Benchmark]
-    //public async Task<SimpleResponse> Response_MediatorCore()
-    //{
-    //    return await mediatorCorePublihser!.GetResponseAsync(request);
-    //}
-
-    //[Benchmark]
-    //public async Task<SimpleResponse> Response_MediatR()
-    //{
-    //    return await mediatrSender!.Send(request);
-    //}
-
-    [Benchmark]
-    public void ParallelNotification_Simple_MediatorCore()
+    [IterationSetup]
+    public void IterationSetup()
     {
-        rootServiceProvider!
-            .GetService<MediatorCore.Publisher.IPublisher>()!
-            .Publish(simpleParallelNotification);
+        scopedServiceProvider = rootServiceProvider.CreateScope();
+        mediatorCorePublisher = scopedServiceProvider.ServiceProvider.GetService<MediatorCore.Publisher.IPublisher>()!;
+        mediatrPublisher = scopedServiceProvider.ServiceProvider.GetService<MediatR.IPublisher>()!;
+        mediatrSender = scopedServiceProvider.ServiceProvider.GetService<MediatR.ISender>()!;
     }
 
-    //[Benchmark]
-    //public void ParallelNotification_Simple_MediatR()
-    //{
-    //    mediatrPublihser!.Publish(simpleParallelNotification);
-    //}
-
-    //[Benchmark]
-    //public void ParallelNotification_LongRunning_MediatorCore()
-    //{
-    //    var publihser = scopedServiceProvider!.GetService<Publisher.IPublisher>();
-    //    publihser!.Publish(longRunningParallelNotification);
-    //}
-
-    //[Benchmark]
-    //public void ParallelNotification_LongRunning_MediatR()
-    //{
-    //    var publihser = scopedServiceProvider!.GetService<IPublisher>();
-    //    publihser!.Publish(longRunningParallelNotification);
-    //}
+    [IterationCleanup]
+    public void IterationCleanup()
+    {
+        scopedServiceProvider.Dispose();
+        GC.Collect();
+    }
 
     [GlobalCleanup]
     public void Dispose()
@@ -85,5 +67,46 @@ public class Benchmark
         }
 
         cancellationToken.Dispose();
+    }
+
+    [Benchmark]
+    public async Task<SimpleResponse> Response_MediatorCore()
+    {
+        return await mediatorCorePublisher
+            .GetResponseAsync(request);
+    }
+
+    [Benchmark]
+    public async Task<SimpleResponse> Response_MediatR()
+    {
+        return await mediatrSender.Send(request);
+    }
+
+    [Benchmark]
+    public void ParallelNotification_Simple_MediatorCore()
+    {
+        mediatorCorePublisher
+            .Publish(simpleParallelNotification);
+    }
+
+    [Benchmark]
+    public void ParallelNotification_Simple_MediatR()
+    {
+        mediatrPublisher
+            .Publish(simpleParallelNotification);
+    }
+
+    [Benchmark]
+    public void ParallelNotification_LongRunning_MediatorCore()
+    {
+        mediatorCorePublisher
+            .Publish(longRunningParallelNotification);
+    }
+
+    [Benchmark]
+    public void ParallelNotification_LongRunning_MediatR()
+    {
+        mediatrPublisher
+            .Publish(longRunningParallelNotification);
     }
 }

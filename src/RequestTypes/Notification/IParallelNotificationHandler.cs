@@ -2,13 +2,13 @@
 
 public interface IBaseParallelNotificationHandler
 {
-    Task Handle(object message);
+    Task Handle(object? message);
 }
 public interface IParallelNotificationHandler<TMessage> :
     IBaseParallelNotificationHandler
     where TMessage : IParallelNotificationMessage
 {
-    Task IBaseParallelNotificationHandler.Handle(object message) =>
-        HandleAsync((TMessage)message);
-    Task HandleAsync(TMessage message);
+    Task IBaseParallelNotificationHandler.Handle(object? message) =>
+        HandleAsync(message is null ? default : (TMessage)message);
+    Task HandleAsync(TMessage? message);
 }

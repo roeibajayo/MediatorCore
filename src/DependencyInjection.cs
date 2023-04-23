@@ -18,7 +18,7 @@ public static class DependencyInjection
         {
             services.AddScoped<IPublisher, MessageBusPublisher>();
             services.AddSingleton<TaskRunnerBackgroundService>();
-            services.AddTransient<IHostedService>((s) => s.GetService<TaskRunnerBackgroundService>()!);
+            services.AddSingleton<IHostedService>((s) => s.GetService<TaskRunnerBackgroundService>()!);
             //services.AddMediatorCore<IPublisher>();
         }
 
