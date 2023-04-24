@@ -19,7 +19,6 @@ public static class DependencyInjection
     /// <typeparam name="TMarker"></typeparam>
     /// <param name="services"></param>
     /// <param name="options">Global MediatorCore configuration</param>
-    /// <returns></returns>
     public static IServiceCollection AddMediatorCore<TMarker>(this IServiceCollection services,
         Action<MediatorCoreOptions>? options = null)
     {
