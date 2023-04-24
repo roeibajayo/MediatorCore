@@ -55,4 +55,9 @@ public class SimpleDebounceQueueMessageHandler :
         logger.LogDebug("SimpleDebounceQueueMessage: " + message.Id);
         return Task.CompletedTask;
     }
+
+    public Task? HandleException(SimpleDebounceQueueMessage message, Exception exception, int reties, Func<Task> retry)
+    {
+        throw new NotImplementedException();
+    }
 }

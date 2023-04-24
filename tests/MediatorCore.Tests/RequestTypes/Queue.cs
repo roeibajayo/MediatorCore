@@ -45,4 +45,9 @@ public class SimpleQueueMessageHandler : IQueueHandler<SimpleQueueMessage>
         logger.LogDebug("SimpleQueue: " + message.Id);
         return Task.CompletedTask;
     }
+
+    public Task? HandleException(SimpleQueueMessage message, Exception exception, int reties, Func<Task> retry)
+    {
+        throw new NotImplementedException();
+    }
 }

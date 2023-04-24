@@ -1,4 +1,5 @@
 ﻿using MediatorCore.Infrastructure;
+using MediatorCore.RequestTypes.Stack;
 using Microsoft.Extensions.DependencyInjection;
 using System.Collections.Concurrent;
 
@@ -50,8 +51,24 @@ internal sealed class AccumulatorQueueBackgroundService<TMessage, TOptions> :
     private async void ProcessItems(IEnumerable<TMessage> items)
     {
         using var scope = serviceScopeFactory.CreateScope();
-        var handlerInstance = scope.ServiceProvider.GetService<IBaseAccumulatorQueue<TMessage>>();
-        await handlerInstance.HandleAsync(items);
+        var handler = scope.ServiceProvider.GetService<IBaseAccumulatorQueue<TMessage>>();
+        await ProcessItem(handler, 0, items);
+    }
+
+    private async Task ProcessItem(IBaseAccumulatorQueue<TMessage> handler, int retries, IEnumerable<TMessage> items)
+    {
+        try
+        {
+            await handler!.HandleAsync(items);
+        }
+        catch (Exception ex)
+        {
+            var exceptionHandler = handler!.HandleException(items, ex, retries,
+                () => ProcessItem(handler, retries + 1, items));
+
+            if (exceptionHandler is not null)
+                await exceptionHandler;
+        }
     }
 
     public void Enqueue(TMessage item)

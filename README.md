@@ -4,6 +4,7 @@
 [![NuGet](https://img.shields.io/nuget/vpre/MediatorCore.svg)](https://www.nuget.org/packages/MediatorCore)
 
 High-performance yet easy to use mediator pattern and in-process message bus implementation in .NET.
+NEW! we now allowing retries!
 
 Supports these messages:
 - Request/Response (IResponseHandler<TRequest, TResponse>)

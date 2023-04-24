@@ -32,7 +32,32 @@ public class FireAndForget : BaseUnitTest
         }
         throw new Exception("No dequeue executed");
     }
+
+    [Fact]
+    public async Task HandleException_3Retries_ReturnNoErrors()
+    {
+        //Arrange
+        var publisher = serviceProvider.GetService<IPublisher>()!;
+        var logger = serviceProvider.GetService<ILogger>()!;
+
+        //Act
+        publisher.Publish(new ExceptionFireAndForgetMessage(1));
+
+        //Assert
+        for (var i = 0; i < 10; i++)
+        {
+            if (ReceivedDebugs(logger, "ExceptionFireAndForgetMessageHandler") == 3)
+            {
+                return;
+            }
+
+            await Task.Delay(100);
+        }
+        throw new Exception("No dequeue executed");
+    }
 }
+
+
 
 public record SimpleFireAndForgetMessage(int Id) : IFireAndForgetMessage;
 public class SimpleFireAndForgetMessageHandler : IFireAndForgetHandler<SimpleFireAndForgetMessage>
@@ -49,6 +74,12 @@ public class SimpleFireAndForgetMessageHandler : IFireAndForgetHandler<SimpleFir
         logger.LogDebug("SimpleFireAndForgetMessage: " + message.Id);
         return Task.CompletedTask;
     }
+
+    public Task? HandleException(SimpleFireAndForgetMessage message, Exception exception, int reties,
+        Func<Task> retry, CancellationToken cancellationToken)
+    {
+        return default;
+    }
 }
 public class SimpleFireAndForgetMessageHandler2 : IFireAndForgetHandler<SimpleFireAndForgetMessage>
 {
@@ -63,5 +94,39 @@ public class SimpleFireAndForgetMessageHandler2 : IFireAndForgetHandler<SimpleFi
     {
         logger.LogDebug("SimpleFireAndForgetMessage2: " + message.Id);
         return Task.CompletedTask;
+    }
+
+    public Task? HandleException(SimpleFireAndForgetMessage message, Exception exception, int reties,
+        Func<Task> retry, CancellationToken cancellationToken)
+    {
+        return default;
+    }
+}
+
+public record ExceptionFireAndForgetMessage(int Id) : IFireAndForgetMessage;
+public class ExceptionFireAndForgetMessageHandler : IFireAndForgetHandler<ExceptionFireAndForgetMessage>
+{
+    public readonly ILogger logger;
+
+    public ExceptionFireAndForgetMessageHandler(ILogger logger)
+    {
+        this.logger = logger;
+    }
+
+    public Task HandleAsync(ExceptionFireAndForgetMessage message, CancellationToken cancellationToken)
+    {
+        throw new Exception("my text here");
+    }
+
+    public async Task HandleException(ExceptionFireAndForgetMessage message,
+        Exception exception,
+        int reties, Func<Task> retry,
+        CancellationToken cancellationToken)
+    {
+        if (reties == 3)
+            return;
+
+        logger.LogDebug($"#{reties} ExceptionFireAndForgetMessageHandler: " + exception.Message);
+        await retry();
     }
 }

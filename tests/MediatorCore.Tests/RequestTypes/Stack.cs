@@ -45,4 +45,9 @@ public class SimpleStackMessageHandler : IStackHandler<SimpleStackMessage>
         logger.LogDebug("SimpleStack: " + message.Id);
         return Task.CompletedTask;
     }
+
+    public Task? HandleException(SimpleStackMessage message, Exception exception, int reties, Func<Task> retry)
+    {
+        throw new NotImplementedException();
+    }
 }

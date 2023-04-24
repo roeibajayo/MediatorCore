@@ -1,6 +1,7 @@
 ﻿using MediatorCore.Infrastructure;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
+using System.Threading;
 
 namespace MediatorCore.RequestTypes.Stack;
 
@@ -39,7 +40,22 @@ internal sealed class StackBackgroundService<TMessage> :
     {
         using var scope = serviceScopeFactory.CreateScope();
         var handler = scope.ServiceProvider.GetService<IStackHandler<TMessage>>();
-        await handler.HandleAsync(item);
+        await ProcessItem(handler, 0, item);
+    }
+    private async Task ProcessItem(IStackHandler<TMessage> handler, int retries, TMessage item)
+    {
+        try
+        {
+            await handler!.HandleAsync(item);
+        }
+        catch (Exception ex)
+        {
+            var exceptionHandler = handler!.HandleException(item, ex, retries,
+                () => ProcessItem(handler, retries + 1, item));
+
+            if (exceptionHandler is not null)
+                await exceptionHandler;
+        }
     }
 
     public Task StopAsync(CancellationToken cancellationToken)
