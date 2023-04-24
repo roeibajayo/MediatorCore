@@ -24,7 +24,7 @@ Install [MediatorCore with NuGet](https://www.nuget.org/packages/MediatorCore):
     
 Or via the .NET Core command line interface:
 
-    dotnet add package MediatR
+    dotnet add package MediatorCore
 
 then register the required services easly:
 
