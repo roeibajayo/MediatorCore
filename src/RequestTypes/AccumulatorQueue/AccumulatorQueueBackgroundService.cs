@@ -1,5 +1,4 @@
 ﻿using MediatorCore.Infrastructure;
-using MediatorCore.RequestTypes.Stack;
 using Microsoft.Extensions.DependencyInjection;
 using System.Collections.Concurrent;
 
@@ -29,7 +28,7 @@ internal sealed class AccumulatorQueueBackgroundService<TMessage, TOptions> :
     {
         queue = new ConcurrentQueue<TMessage>();
         this.serviceScopeFactory = serviceScopeFactory;
-        this.options = Activator.CreateInstance<TOptions>();
+        this.options = options;
     }
 
     protected override async Task OnExecuteAsync(CancellationToken cancellationToken)

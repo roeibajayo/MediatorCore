@@ -7,6 +7,7 @@ using MediatorCore.RequestTypes.Notification;
 using MediatorCore.RequestTypes.Queue;
 using MediatorCore.RequestTypes.Response;
 using MediatorCore.RequestTypes.Stack;
+using MediatorCore.RequestTypes.ThrottlingQueue;
 
 namespace Microsoft.Extensions.DependencyInjection;
 
@@ -39,6 +40,7 @@ public static class DependencyInjection
         services.AddQueueHandlers<TMarker>();
         services.AddStackHandlers<TMarker>();
         services.AddResponseHandlers<TMarker>();
+        services.AddThrottlingQueueHandlers<TMarker>();
 
         return services;
     }

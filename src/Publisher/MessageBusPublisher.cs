@@ -5,6 +5,7 @@ using MediatorCore.RequestTypes.Notification;
 using MediatorCore.RequestTypes.Queue;
 using MediatorCore.RequestTypes.Response;
 using MediatorCore.RequestTypes.Stack;
+using MediatorCore.RequestTypes.ThrottlingQueue;
 
 namespace MediatorCore.Publisher;
 
@@ -43,6 +44,9 @@ internal partial class MessageBusPublisher : IPublisher
                 break;
             case IParallelNotificationMessage:
                 handler.HandleParallelNotificationMessage<TMessage>(message);
+                break;
+            case IThrottlingQueueMessage:
+                handler.HandleThrottlingQueueMessage<TMessage>(message);
                 break;
             default:
                 throw new NotSupportedException();
