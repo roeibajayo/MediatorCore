@@ -15,7 +15,9 @@ public class DebounceQueue : BaseUnitTest
 
         //Act
         publisher.Publish(new SimpleDebounceQueueMessage(0));
+        await Task.Delay(200);
         publisher.Publish(new SimpleDebounceQueueMessage(1));
+        await Task.Delay(200);
         publisher.Publish(new SimpleDebounceQueueMessage(2));
 
         //Assert
