@@ -12,6 +12,7 @@ Supports these messages:
 - Stack (IStackHandler<TMessage>)
 - DebounceQueue (IDebounceQueueMessage<TMessage, TDebounceQueueOptions>)
 - AccumulatorQueue (IAccumulatorQueueHandler<TMessage, TAccumulatorQueueOptions>)
+- ThrottlingQueue (IThrottlingQueueHandler<TMessage, TThrottlingQueueOptions>)
 - FireAndForget (IFireAndForgetHandler<TMessage>)
 - BubblingNotification (IBubblingNotificationHandler<TMessage, TBubblingNotificationOptions>)
 - ParallelNotification (IParallelNotificationHandler<TMessage>)
