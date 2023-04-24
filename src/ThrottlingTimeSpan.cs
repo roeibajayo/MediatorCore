@@ -1,4 +1,4 @@
-﻿namespace MediatorCore.Infrastructure;
+﻿namespace MediatorCore;
 
 /// <summary>
 /// Represents the throttling info
@@ -37,6 +37,6 @@ public sealed record ThrottlingTimeSpan(TimeSpan TimeSpan, int Executes, bool Fi
     public DateTimeOffset GetLastEnd() => GetLastEnd(DateTimeOffset.Now);
     public DateTimeOffset GetLastEnd(DateTimeOffset relativeTo)
     {
-        return !Fixed ? relativeTo : (GetLastStart(relativeTo) + TimeSpan);
+        return !Fixed ? relativeTo : GetLastStart(relativeTo) + TimeSpan;
     }
 }

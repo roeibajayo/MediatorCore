@@ -1,5 +1,4 @@
-﻿using MediatorCore.Infrastructure;
-using MediatorCore.RequestTypes.ThrottlingQueue;
+﻿using MediatorCore.RequestTypes.ThrottlingQueue;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 

@@ -94,13 +94,12 @@ internal sealed class LockingThrottlingQueue<T> : IDisposable
                         continue;
                     }
 
-                    //Console.WriteLine($"[{now}] Waiting until {next.Value}, " +
-                    //    $"total {(int)until.TotalMilliseconds} ms");
-
                     _ = Task.Run(async () =>
                     {
                         await Task.Delay(until + TimeSpan.FromMilliseconds(20), cancellationToken);
-                        waitingLocker.Release();
+
+                        if (!cancellationToken.IsCancellationRequested)
+                            waitingLocker.Release();
                     });
 
                     await WaitForNextLoopAsync(cancellationToken);

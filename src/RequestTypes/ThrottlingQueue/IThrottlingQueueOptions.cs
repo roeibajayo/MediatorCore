@@ -1,6 +1,4 @@
-﻿using MediatorCore.Infrastructure;
-
-namespace MediatorCore.RequestTypes.ThrottlingQueue;
+﻿namespace MediatorCore.RequestTypes.ThrottlingQueue;
 
 public interface IThrottlingQueueOptions
 {
