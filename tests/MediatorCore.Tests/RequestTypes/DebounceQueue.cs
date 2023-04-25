@@ -58,7 +58,7 @@ public class SimpleDebounceQueueMessageHandler :
         return Task.CompletedTask;
     }
 
-    public Task? HandleException(SimpleDebounceQueueMessage message, Exception exception, int reties, Func<Task> retry)
+    public Task? HandleException(SimpleDebounceQueueMessage message, Exception exception, int retries, Func<Task> retry)
     {
         throw new NotImplementedException();
     }

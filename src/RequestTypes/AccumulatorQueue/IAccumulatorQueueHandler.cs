@@ -7,7 +7,7 @@ public interface IBaseAccumulatorQueue<TMessage>
 
     Task? HandleException(IEnumerable<TMessage> items,
         Exception exception,
-        int reties, Func<Task> retry);
+        int retries, Func<Task> retry);
 }
 
 public interface IAccumulatorQueueHandler<TMessage, TOptions> :

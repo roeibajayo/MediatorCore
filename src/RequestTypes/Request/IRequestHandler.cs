@@ -7,6 +7,6 @@ public interface IRequestHandler<TMessage>
 
     Task? HandleException(TMessage message,
         Exception exception,
-        int reties, Func<Task> retry,
+        int retries, Func<Task> retry,
         CancellationToken cancellationToken);
 }

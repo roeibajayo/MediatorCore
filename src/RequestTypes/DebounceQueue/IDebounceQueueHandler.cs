@@ -7,7 +7,7 @@ public interface IBaseDebounceQueue<TMessage>
 
     Task? HandleException(TMessage message,
         Exception exception,
-        int reties, Func<Task> retry);
+        int retries, Func<Task> retry);
 }
 
 public interface IDebounceQueueHandler<TMessage, TOptions> :

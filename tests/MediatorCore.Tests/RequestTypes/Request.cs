@@ -65,7 +65,7 @@ public class SimpleRequestMessageHandler : IRequestHandler<SimpleRequestMessage>
         return Task.CompletedTask;
     }
 
-    public Task? HandleException(SimpleRequestMessage message, Exception exception, int reties,
+    public Task? HandleException(SimpleRequestMessage message, Exception exception, int retries,
         Func<Task> retry, CancellationToken cancellationToken)
     {
         return default;
@@ -86,7 +86,7 @@ public class SimpleRequestMessageHandler2 : IRequestHandler<SimpleRequestMessage
         return Task.CompletedTask;
     }
 
-    public Task? HandleException(SimpleRequestMessage message, Exception exception, int reties,
+    public Task? HandleException(SimpleRequestMessage message, Exception exception, int retries,
         Func<Task> retry, CancellationToken cancellationToken)
     {
         return default;
@@ -110,13 +110,13 @@ public class ExceptionRequestMessageHandler : IRequestHandler<ExceptionRequestMe
 
     public async Task HandleException(ExceptionRequestMessage message,
         Exception exception,
-        int reties, Func<Task> retry,
+        int retries, Func<Task> retry,
         CancellationToken cancellationToken)
     {
-        if (reties == 3)
+        if (retries == 3)
             return;
 
-        logger.LogDebug($"#{reties} ExceptionRequestMessageHandler: " + exception.Message);
+        logger.LogDebug($"#{retries} ExceptionRequestMessageHandler: " + exception.Message);
         await retry();
     }
 }

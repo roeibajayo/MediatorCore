@@ -7,7 +7,7 @@ public interface IBaseThrottlingQueue<TMessage>
 
     Task? HandleException(IEnumerable<TMessage> items,
         Exception exception,
-        int reties, Func<Task> retry);
+        int retries, Func<Task> retry);
 }
 
 public interface IThrottlingQueueHandler<TMessage, TOptions> :

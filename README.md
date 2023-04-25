@@ -245,7 +245,10 @@ public class LogsAccumulatorQueueMessageHandler :
         return Task.CompletedTask;
     }
 
-    public Task? HandleException(IEnumerable<LogMessage> items, Exception exception, int reties, Func<Task> retry)
+    public Task? HandleException(IEnumerable<LogMessage> items, 
+        Exception exception, 
+        int reties, 
+        Func<Task> retry)
     {
         return default;
     }
@@ -295,7 +298,7 @@ public class Example
 - Registration validations
 - More handlers types
 - More unitests
-- More examples of use (check out the Unitests for now))
+- More examples of use (check out the Unitests for now)
 
 ## Contribute
 Please feel free to PR. I highly appreciate any contribution!
