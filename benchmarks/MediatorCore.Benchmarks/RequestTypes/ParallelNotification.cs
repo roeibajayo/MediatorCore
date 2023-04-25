@@ -17,7 +17,7 @@ public class SimpleParallelNotification1Handler :
         return Task.CompletedTask;
     }
 
-    public Task HandleAsync(SimpleParallelNotificationMessage message)
+    public Task HandleAsync(SimpleParallelNotificationMessage message, CancellationToken cancellationToken)
     {
         var result = message.Id * 2; 
         return Task.CompletedTask;
@@ -33,7 +33,7 @@ public class SimpleParallelNotification2Handler :
         await Task.Delay(1000);
     }
 
-    public async Task HandleAsync(SimpleParallelNotificationMessage message)
+    public async Task HandleAsync(SimpleParallelNotificationMessage message, CancellationToken cancellationToken)
     {
         await Task.Delay(1000);
     }
@@ -53,7 +53,7 @@ public class LongRunningParallelNotification1Handler :
         await Task.Delay(1000, cancellationToken);
     }
 
-    public async Task HandleAsync(LongRunningParallelNotificationMessage message)
+    public async Task HandleAsync(LongRunningParallelNotificationMessage message, CancellationToken cancellationToken)
     {
         await Task.Delay(1000);
     }
@@ -68,7 +68,7 @@ public class LongRunningParallelNotification2Handler :
         await Task.Delay(1000);
     }
 
-    public async Task HandleAsync(LongRunningParallelNotificationMessage message)
+    public async Task HandleAsync(LongRunningParallelNotificationMessage message, CancellationToken cancellationToken)
     {
         await Task.Delay(1000);
     }

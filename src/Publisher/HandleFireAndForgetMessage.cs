@@ -5,7 +5,7 @@ namespace MediatorCore.Publisher;
 
 internal partial class MessageBusPublisher : IPublisher
 {
-    private async void HandleFireAndForgetMessage<TMessage>(TMessage message, CancellationToken cancellationToken)
+    private async Task HandleFireAndForgetMessage<TMessage>(TMessage message, CancellationToken cancellationToken)
         where TMessage : IFireAndForgetMessage
     {
         var handlers = serviceProvider

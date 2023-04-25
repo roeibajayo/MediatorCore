@@ -19,7 +19,14 @@ namespace MediatorCore
         /// </summary>
         /// <param name="message">Request message</param>
         /// <param name="cancellationToken">Optional cancellation token</param>
+        void Publish<TMessage>(TMessage message, CancellationToken cancellationToken = default);
+
+        /// <summary>
+        /// Asynchronously send a message to multiple handlers and wait for all handlers to complete
+        /// </summary>
+        /// <param name="message">Request message</param>
+        /// <param name="cancellationToken">Optional cancellation token</param>
         /// <returns>A task that represents the publish operation.</returns>
-        void Publish<T>(T message, CancellationToken cancellationToken = default);
+        Task PublishAsync<TMessage>(TMessage message, CancellationToken cancellationToken = default);
     }
 }

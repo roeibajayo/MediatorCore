@@ -5,13 +5,18 @@ namespace MediatorCore.Publisher;
 
 internal partial class MessageBusPublisher : IPublisher
 {
-    private async void HandleBubblingNotificationMessage<TMessage>(TMessage message)
+    private async Task HandleBubblingNotificationMessage<TMessage>(TMessage message, CancellationToken cancellationToken)
         where TMessage : IBubblingNotificationMessage
     {
         var handlers = serviceProvider.GetServices<IBaseBubblingNotification<TMessage>>();
         foreach (var handler in handlers)
         {
-            if (!await handler!.HandleAsync(message))
+            if (cancellationToken.IsCancellationRequested)
+            {
+                break;
+            }
+
+            if (!await handler!.HandleAsync(message, cancellationToken))
             {
                 break;
             }

@@ -30,6 +30,25 @@ public class BubblingNotification : BaseUnitTest
         }
         throw new Exception("No dequeue executed");
     }
+    [Fact]
+    public async Task AwaitPublishBubbleMessage_ReturnNoErrorsAndDequeue()
+    {
+        //Arrange
+        var publisher = serviceProvider.GetService<IPublisher>()!;
+        var logger = serviceProvider.GetService<ILogger>()!;
+        var id = "1_" + Guid.NewGuid();
+
+        //Act
+        await publisher.PublishAsync(new BubblingNotificationMessage(id, true));
+
+        //Assert
+        if (ReceivedDebugs(logger, "BubblingNotification1Message: " + id) == 1 &&
+            ReceivedDebugs(logger, "BubblingNotification2Message: " + id) == 1)
+        {
+            return;
+        }
+        throw new Exception("No dequeue executed");
+    }
 
     [Fact]
     public async Task PublishNotBubbleMessage_ReturnNoErrorsAndDequeue()
@@ -43,15 +62,10 @@ public class BubblingNotification : BaseUnitTest
         publisher.Publish(new BubblingNotificationMessage(id, false));
 
         //Assert
-        for (var i = 0; i < 10; i++)
+        if (ReceivedDebugs(logger, "BubblingNotification1Message: " + id) == 1 &&
+            ReceivedDebugs(logger, "BubblingNotification2Message: " + id) == 0)
         {
-            if (ReceivedDebugs(logger, "BubblingNotification1Message: " + id) == 1 &&
-                ReceivedDebugs(logger, "BubblingNotification2Message: " + id) == 0)
-            {
-                return;
-            }
-
-            await Task.Delay(200);
+            return;
         }
         throw new Exception("No dequeue executed");
     }
@@ -77,7 +91,7 @@ public class BubblingNotification1Handler : IBubblingNotificationHandler<Bubblin
         this.logger = logger;
     }
 
-    public Task<bool> HandleAsync(BubblingNotificationMessage message)
+    public Task<bool> HandleAsync(BubblingNotificationMessage message, CancellationToken cancellationToken)
     {
         logger.LogDebug("BubblingNotification1Message: " + message.Id);
         return Task.FromResult(message.Bubble);
@@ -92,7 +106,7 @@ public class BubblingNotification2Handler : IBubblingNotificationHandler<Bubblin
         this.logger = logger;
     }
 
-    public Task<bool> HandleAsync(BubblingNotificationMessage message)
+    public Task<bool> HandleAsync(BubblingNotificationMessage message, CancellationToken cancellationToken)
     {
         logger.LogDebug("BubblingNotification2Message: " + message.Id);
         return Task.FromResult(true);

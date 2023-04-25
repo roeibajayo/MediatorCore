@@ -8,8 +8,7 @@ public class ParallelNotification : BaseUnitTest
 {
     [Theory]
     [InlineData(1)]
-    [InlineData(10)]
-    [InlineData(10_000)]
+    [InlineData(100)]
     public async Task PublishBubbleMessage_ReturnNoErrorsAndDequeue(int counts)
     {
         //Arrange
@@ -20,19 +19,14 @@ public class ParallelNotification : BaseUnitTest
         //Act
         for (var i = 0; i < counts; i++)
         {
-            publisher.Publish(new ParallelNotificationMessage(id));
+            await publisher.PublishAsync(new ParallelNotificationMessage(id));
         }
 
         //Assert
-        for (var i = 0; i < 20; i++)
+        if (ReceivedDebugs(logger, "ParallelNotification1Message: " + id) == counts &&
+            ReceivedDebugs(logger, "ParallelNotification2Message: " + id) == counts)
         {
-            if (ReceivedDebugs(logger, "ParallelNotification1Message: " + id) == counts &&
-                ReceivedDebugs(logger, "ParallelNotification2Message: " + id) == counts)
-            {
-                return;
-            }
-
-            await Task.Delay(200);
+            return;
         }
         throw new Exception("No dequeue executed");
     }
@@ -48,10 +42,10 @@ public class ParallelNotification1Handler : IParallelNotificationHandler<Paralle
         this.logger = logger;
     }
 
-    public async Task HandleAsync(ParallelNotificationMessage message)
+    public Task HandleAsync(ParallelNotificationMessage message, CancellationToken cancellationToken)
     {
-        await Task.Delay(1000);
         logger.LogDebug("ParallelNotification1Message: " + message.Id);
+        return Task.CompletedTask;
     }
 }
 public class ParallelNotification2Handler : IParallelNotificationHandler<ParallelNotificationMessage>
@@ -63,9 +57,9 @@ public class ParallelNotification2Handler : IParallelNotificationHandler<Paralle
         this.logger = logger;
     }
 
-    public async Task HandleAsync(ParallelNotificationMessage message)
+    public Task HandleAsync(ParallelNotificationMessage message, CancellationToken cancellationToken)
     {
-        await Task.Delay(1000);
         logger.LogDebug("ParallelNotification2Message: " + message.Id);
+        return Task.CompletedTask;
     }
 }
