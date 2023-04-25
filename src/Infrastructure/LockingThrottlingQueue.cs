@@ -15,6 +15,7 @@ internal sealed class LockingThrottlingQueue<T> : IDisposable
     private readonly Queue<DateTimeOffset> executes = new();
     private readonly SemaphoreSlim waitingLocker = new(1);
     private DateTimeOffset? waitingUntil;
+    private CancellationTokenSource? delayTaskCancellation;
 
     private readonly object locker = new();
 
@@ -82,23 +83,24 @@ internal sealed class LockingThrottlingQueue<T> : IDisposable
                 {
                     var now = DateTimeOffset.Now;
                     var until = next.Value - now;
-                    if (waitingUntil == null || next > waitingUntil)
-                    {
-                        waitingUntil = next;
-                    }
-                    else
+                    if (waitingUntil != null && next <= waitingUntil)
                     {
                         await WaitForNextLoopAsync(cancellationToken);
                         continue;
                     }
 
+                    waitingUntil = next;
+                    delayTaskCancellation = new CancellationTokenSource();
+
                     _ = Task.Run(async () =>
                     {
-                        await Task.Delay(until + TimeSpan.FromMilliseconds(20), cancellationToken);
+                        await Task.Delay(until + TimeSpan.FromMilliseconds(20), delayTaskCancellation.Token);
 
-                        if (!cancellationToken.IsCancellationRequested)
+                        if (!delayTaskCancellation.Token.IsCancellationRequested)
                             waitingLocker.Release();
-                    }, cancellationToken);
+
+                        delayTaskCancellation = null;
+                    }, delayTaskCancellation.Token);
 
                     await WaitForNextLoopAsync(cancellationToken);
                 }
@@ -138,6 +140,7 @@ internal sealed class LockingThrottlingQueue<T> : IDisposable
         if (!running || waitingUntil is not null)
             return;
 
+        delayTaskCancellation?.Cancel();
         waitingLocker.Release();
     }
     private DateTimeOffset? GetNextExecution()
