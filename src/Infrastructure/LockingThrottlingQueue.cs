@@ -13,7 +13,7 @@ internal sealed class LockingThrottlingQueue<T> : IDisposable
     private bool running = true;
     private readonly ConcurrentQueue<T> queue = new();
     private readonly Queue<DateTimeOffset> executes = new();
-    private SemaphoreSlim waitingLocker;
+    private readonly SemaphoreSlim waitingLocker = new(1);
     private DateTimeOffset? waitingUntil;
 
     private readonly object locker = new();
@@ -28,8 +28,6 @@ internal sealed class LockingThrottlingQueue<T> : IDisposable
                 throw new ArgumentOutOfRangeException(null, nameof(dateParts));
 
         this.dateParts = dateParts;
-
-        waitingLocker = new SemaphoreSlim(1);
         waitingLocker.Wait();
     }
 
@@ -58,31 +56,31 @@ internal sealed class LockingThrottlingQueue<T> : IDisposable
     }
     internal async Task<(bool Success, IEnumerable<T> Items)> TryDequeueAsync(CancellationToken cancellationToken)
     {
-        while (!cancellationToken.IsCancellationRequested)
+        while (!cancellationToken.IsCancellationRequested && running)
         {
             waitingUntil = null;
 
-            if (!AnyInQueue())
+            if (queue.IsEmpty)
             {
                 //waiting for first items
                 await WaitForNextLoopAsync(cancellationToken);
             }
 
             var dequeuedItems = TryDequeue();
-            var dequeuedItemsCount = dequeuedItems.Count();
+            var dequeuedItemsCount = dequeuedItems.Count;
 
 
             if (dequeuedItemsCount == 0)
             {
-                var now = DateTimeOffset.Now;
-
-                if (!AnyInQueue())
+                if (queue.IsEmpty)
                     continue; //released not in time, maybe async task released the running
+
 
                 //cant dequeue, max items
                 var next = GetNextExecution();
                 if (next != null)
                 {
+                    var now = DateTimeOffset.Now;
                     var until = next.Value - now;
                     if (waitingUntil == null || next > waitingUntil)
                     {
@@ -100,14 +98,14 @@ internal sealed class LockingThrottlingQueue<T> : IDisposable
 
                         if (!cancellationToken.IsCancellationRequested)
                             waitingLocker.Release();
-                    });
+                    }, cancellationToken);
 
                     await WaitForNextLoopAsync(cancellationToken);
                 }
             }
             else
             {
-                if (!cancellationToken.IsCancellationRequested)
+                if (!cancellationToken.IsCancellationRequested && running)
                     return (true, dequeuedItems);
             }
         }
@@ -186,17 +184,17 @@ internal sealed class LockingThrottlingQueue<T> : IDisposable
     /// This method attempts to dequeue items from the queue according to the throttling policy.
     /// </summary>
     /// <returns></returns>
-    private IEnumerable<T> TryDequeue()
+    private List<T> TryDequeue()
     {
         ClearOldCompletedFromQueue();
         var items = TryDequeueItems();
         var now = DateTimeOffset.Now;
-        var count = items.Count();
+        var count = items.Count;
         for (var i = 0; i < count; i++)
             executes.Enqueue(now);
         return items;
     }
-    private IEnumerable<T> TryDequeueItems()
+    private List<T> TryDequeueItems()
     {
         var completed = -1;
         var count = -1;
@@ -213,12 +211,10 @@ internal sealed class LockingThrottlingQueue<T> : IDisposable
         }
 
         var items = count <= 0 ?
-            Enumerable.Empty<T>() :
+            new() :
             DequeueItems(count);
         return items;
     }
-    private bool AnyInQueue() =>
-        !queue.IsEmpty;
     private DateTimeOffset? GetLastExecute() =>
         executes.Count == 0 ? null : executes.Peek();
     private void ClearOldCompletedFromQueue()
@@ -237,8 +233,8 @@ internal sealed class LockingThrottlingQueue<T> : IDisposable
 
     public void Dispose()
     {
-        Clear();
         running = false;
+        Clear();
         waitingLocker.Release();
         waitingLocker.Dispose();
     }
