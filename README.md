@@ -7,13 +7,13 @@ High-performance yet easy to use mediator pattern and in-process message bus imp
 NEW! we now allowing retries!
 
 Supports these messages:
-- Request/Response (IResponseHandler<TRequest, TResponse>)
+- Request without response (IRequestHandler<TMessage>)
+- Request with response (IResponseHandler<TRequest, TResponse>)
 - Queue (IQueueHandler<TMessage>)
 - Stack (IStackHandler<TMessage>)
 - DebounceQueue (IDebounceQueueMessage<TMessage, TDebounceQueueOptions>)
 - AccumulatorQueue (IAccumulatorQueueHandler<TMessage, TAccumulatorQueueOptions>)
 - ThrottlingQueue (IThrottlingQueueHandler<TMessage, TThrottlingQueueOptions>)
-- FireAndForget (IFireAndForgetHandler<TMessage>)
 - BubblingNotification (IBubblingNotificationHandler<TMessage, TBubblingNotificationOptions>)
 - ParallelNotification (IParallelNotificationHandler<TMessage>)
 - More coming soon..

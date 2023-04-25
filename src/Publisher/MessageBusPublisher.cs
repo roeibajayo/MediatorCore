@@ -1,8 +1,8 @@
 ﻿using MediatorCore.RequestTypes.AccumulatorQueue;
 using MediatorCore.RequestTypes.DebounceQueue;
-using MediatorCore.RequestTypes.FireAndForget;
 using MediatorCore.RequestTypes.Notification;
 using MediatorCore.RequestTypes.Queue;
+using MediatorCore.RequestTypes.Request;
 using MediatorCore.RequestTypes.Response;
 using MediatorCore.RequestTypes.Stack;
 using MediatorCore.RequestTypes.ThrottlingQueue;
@@ -36,8 +36,8 @@ internal partial class MessageBusPublisher : IPublisher
             case IDebounceQueueMessage:
                 handler.HandleDebounceQueueMessage<TMessage>(message);
                 break;
-            case IFireAndForgetMessage:
-                handler.HandleFireAndForgetMessage<TMessage>(message, cancellationToken);
+            case IRequestMessage:
+                handler.HandleRequestMessage<TMessage>(message, cancellationToken);
                 break;
             case IBubblingNotificationMessage:
                 handler.HandleBubblingNotificationMessage<TMessage>(message, cancellationToken);
@@ -71,8 +71,8 @@ internal partial class MessageBusPublisher : IPublisher
             case IDebounceQueueMessage:
                 handler.HandleDebounceQueueMessage<TMessage>(message);
                 break;
-            case IFireAndForgetMessage:
-                await handler.HandleFireAndForgetMessage<TMessage>(message, cancellationToken);
+            case IRequestMessage:
+                await handler.HandleRequestMessage<TMessage>(message, cancellationToken);
                 break;
             case IBubblingNotificationMessage:
                 await handler.HandleBubblingNotificationMessage<TMessage>(message, cancellationToken);

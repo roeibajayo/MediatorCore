@@ -1,23 +1,23 @@
-﻿using MediatorCore.RequestTypes.FireAndForget;
+﻿using MediatorCore.RequestTypes.Request;
 using Microsoft.Extensions.DependencyInjection;
 
 namespace MediatorCore.Publisher;
 
 internal partial class MessageBusPublisher : IPublisher
 {
-    private async Task HandleFireAndForgetMessage<TMessage>(TMessage message, CancellationToken cancellationToken)
-        where TMessage : IFireAndForgetMessage
+    private async Task HandleRequestMessage<TMessage>(TMessage message, CancellationToken cancellationToken)
+        where TMessage : IRequestMessage
     {
         var handlers = serviceProvider
-            .GetServices<IFireAndForgetHandler<TMessage>>();
+            .GetServices<IRequestHandler<TMessage>>();
 
         await Task.WhenAll(
-            handlers.Select(handler => HandleFireAndForgetMessage(handler, 0, message, cancellationToken)));
+            handlers.Select(handler => HandleRequestMessage(handler, 0, message, cancellationToken)));
     }
 
-    private async Task HandleFireAndForgetMessage<TMessage>(IFireAndForgetHandler<TMessage> handler,
+    private async Task HandleRequestMessage<TMessage>(IRequestHandler<TMessage> handler,
         int retries, TMessage message, CancellationToken cancellationToken)
-        where TMessage : IFireAndForgetMessage
+        where TMessage : IRequestMessage
     {
         try
         {
@@ -26,7 +26,7 @@ internal partial class MessageBusPublisher : IPublisher
         catch (Exception ex)
         {
             var exceptionHandler = handler!.HandleException(message, ex, retries,
-                () => HandleFireAndForgetMessage(handler, retries + 1, message, cancellationToken),
+                () => HandleRequestMessage(handler, retries + 1, message, cancellationToken),
                 cancellationToken);
 
             if (exceptionHandler is not null)

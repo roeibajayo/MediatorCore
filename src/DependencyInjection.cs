@@ -2,9 +2,9 @@
 using MediatorCore.Publisher;
 using MediatorCore.RequestTypes.AccumulatorQueue;
 using MediatorCore.RequestTypes.DebounceQueue;
-using MediatorCore.RequestTypes.FireAndForget;
 using MediatorCore.RequestTypes.Notification;
 using MediatorCore.RequestTypes.Queue;
+using MediatorCore.RequestTypes.Request;
 using MediatorCore.RequestTypes.Response;
 using MediatorCore.RequestTypes.Stack;
 using MediatorCore.RequestTypes.ThrottlingQueue;
@@ -35,11 +35,11 @@ public static class DependencyInjection
 
         services.AddAccumulatorQueueHandlers<TMarker>();
         services.AddDebounceQueueHandlers<TMarker>();
-        services.AddFireAndForgetHandlers<TMarker>();
         services.AddNotificationsHandlers<TMarker>();
         services.AddQueueHandlers<TMarker>();
-        services.AddStackHandlers<TMarker>();
+        services.AddRequestHandlers<TMarker>();
         services.AddResponseHandlers<TMarker>();
+        services.AddStackHandlers<TMarker>();
         services.AddThrottlingQueueHandlers<TMarker>();
 
         return services;

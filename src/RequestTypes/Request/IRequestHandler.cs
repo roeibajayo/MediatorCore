@@ -1,7 +1,7 @@
-﻿namespace MediatorCore.RequestTypes.FireAndForget;
+﻿namespace MediatorCore.RequestTypes.Request;
 
-public interface IFireAndForgetHandler<TMessage>
-    where TMessage : IFireAndForgetMessage
+public interface IRequestHandler<TMessage>
+    where TMessage : IRequestMessage
 {
     Task HandleAsync(TMessage message, CancellationToken cancellationToken);
 
