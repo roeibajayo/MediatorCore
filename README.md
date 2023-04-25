@@ -41,9 +41,11 @@ public record SimpleResponse(bool Success);
 public record SimpleRequest(int Id) : IResponseMessage<SimpleResponse>;
 public class SimpleResponseMessageHandler : IResponseHandler<SimpleRequest, SimpleResponse>
 {
-    public Task<SimpleResponse> HandleAsync(SimpleRequest message, CancellationToken cancellationToken)
+    public async Task<SimpleResponse> HandleAsync(SimpleRequest message, CancellationToken cancellationToken)
     {
-        return Task.FromResult(new SimpleResponse(true));
+        var response = new SimpleResponse(true);
+        await Task.Delay(200, cancellationToken); // simulate some work
+        return response;
     }
 }
 ```
@@ -61,8 +63,9 @@ public class Example
 
     public async Task GetResponse()
     {
-        var response = await publisher.GetResponseAsync(
-          new SimpleRequest(1));
+        var request = new SimpleRequest(1);
+        var response = await publisher.GetResponseAsync(request);
+        // ... do something with the response
     }
 }
 ```
@@ -75,7 +78,7 @@ public class SimpleRequestMessageHandler : IRequestHandler<SimpleRequest>
 {
     public async Task HandleAsync(SimpleRequest message, CancellationToken cancellationToken)
     {
-        await Task.Delay(300, cancellationToken);
+        await Task.Delay(300, cancellationToken); // simulate some work
         throw new Exception("hello world");
     }
  
@@ -110,10 +113,11 @@ public class Example
 
     public async Task GetResponse()
     {
-        await publisher.PublishAsync(new SimpleRequest(1));
+        var message = new SimpleRequest(1);
+        await publisher.PublishAsync(message);
 
         // you can also use this as fire and forget request:
-        // publisher.Publish(new SimpleRequest(1));
+        // publisher.Publish(message);
     }
 }
 ```
@@ -182,13 +186,80 @@ public class Example
 
     public async Task GetResponse()
     {
-        await publisher.PublishAsync(new SharedBubblingNotificationMessage(1, true));
+        var message = new SharedBubblingNotificationMessage(1, true);
+        await publisher.PublishAsync(message);
 
         // you can also use this as fire and forget notification:
-        // publisher.Publish(new SharedBubblingNotificationMessage(1, true));
+        // publisher.Publish(message);
     }
 }
 ```
+
+## Example of creating a Accumalator queue
+
+```csharp
+// the message:
+
+public class LogsAccumulatorQueueOptions :
+    IAccumulatorQueueOptions
+{
+    public int MsInterval => 60 * 1000;
+    public int? MaxItemsOnDequeue => 100;
+    public int? MaxItemsStored => 1000;
+    public MaxItemsStoredBehaviors? MaxItemsBehavior => MaxItemsStoredBehaviors.ThrowExceptionOnAdd;
+}
+public record LogMessage(DateTimeOffest Date, string Message) : IAccumulatorQueueMessage;
+public class LogsAccumulatorQueueMessageHandler :
+    IAccumulatorQueueHandler<LogMessage, LogsAccumulatorQueueOptions>
+{
+    public readonly ILogger logger;
+
+    public LogsAccumulatorQueueMessageHandler(ILogger logger)
+    {
+        this.logger = logger;
+    }
+
+    public Task HandleAsync(IEnumerable<LogMessage> messages)
+    {
+        foreach (var message in messages)
+        {
+            logger.LogDebug("Log message: " + message.Message);
+        }
+        return Task.CompletedTask;
+    }
+
+    public Task? HandleException(IEnumerable<LogMessage> items, Exception exception, int reties, Func<Task> retry)
+    {
+        return default;
+    }
+}
+```
+
+then enqueue a log message:
+```csharp
+public class Example
+{
+    private readonly IPublisher publisher;
+
+    public Example(IPublisher publisher)
+    {
+        this.publisher = publisher;
+    }
+    
+    public async Task SomeAction()
+    {
+        var log = new LogMessage(DateTimeOffest.UtcNow, "hello world from SomeAction");
+        publisher.Publish(log);
+    }
+    
+    public async Task AnotherAction()
+    {
+        var log = new LogMessage(DateTimeOffest.UtcNow, "hello world from AnotherAction");
+        publisher.Publish(log);
+    }
+}
+```
+
 
 ## Benchmarks vs MediatR:
 |                                        Method |          Mean |       Error |      StdDev | Allocated |
