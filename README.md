@@ -37,8 +37,13 @@ services.AddMediatorCore<Startup>();
 ## Example of creating a Request/Response:
 
 ```csharp
+// the response:
 public record SimpleResponse(bool Success);
+
+// the request (message):
 public record SimpleRequest(int Id) : IResponseMessage<SimpleResponse>;
+
+// the handler:
 public class SimpleResponseMessageHandler : IResponseHandler<SimpleRequest, SimpleResponse>
 {
     public async Task<SimpleResponse> HandleAsync(SimpleRequest message, CancellationToken cancellationToken)
@@ -73,7 +78,10 @@ public class Example
 ## Example of creating a Request witout response:
 
 ```csharp
+// the message:
 public record SimpleRequest(int Id) : IRequestMessage;
+
+// the handler:
 public class SimpleRequestMessageHandler : IRequestHandler<SimpleRequest>
 {
     public async Task HandleAsync(SimpleRequest message, CancellationToken cancellationToken)
@@ -128,12 +136,14 @@ public class Example
 // the message:
 public record SharedBubblingNotificationMessage(string Id, bool Bubble) : IBubblingNotificationMessage;
 
-// first handler:
+// first handler options:
 public class BubblingNotification1Options
     : IBubblingNotificationOptions
 {
     public int Sort => 1;
 }
+
+// first handler:
 public class BubblingNotification1Handler : IBubblingNotificationHandler<SharedBubblingNotificationMessage, BubblingNotification1Options>
 {
     public readonly ILogger logger;
@@ -150,12 +160,14 @@ public class BubblingNotification1Handler : IBubblingNotificationHandler<SharedB
     }
 }
 
-// second handler:
+// second handler options:
 public class BubblingNotification2Options
     : IBubblingNotificationOptions
 {
     public int Sort => 2;
 }
+
+// second handler:
 public class BubblingNotification2Handler : IBubblingNotificationHandler<SharedBubblingNotificationMessage, BubblingNotification2Options>
 {
     public readonly ILogger logger;
@@ -198,8 +210,7 @@ public class Example
 ## Example of creating a Accumulator queue
 
 ```csharp
-// the message:
-
+// the options of the queue:
 public class LogsAccumulatorQueueOptions :
     IAccumulatorQueueOptions
 {
@@ -208,7 +219,11 @@ public class LogsAccumulatorQueueOptions :
     public int? MaxItemsStored => 1000;
     public MaxItemsStoredBehaviors? MaxItemsBehavior => MaxItemsStoredBehaviors.ThrowExceptionOnAdd;
 }
+
+// the message:
 public record LogMessage(DateTimeOffest Date, string Message) : IAccumulatorQueueMessage;
+
+// the handler:
 public class LogsAccumulatorQueueMessageHandler :
     IAccumulatorQueueHandler<LogMessage, LogsAccumulatorQueueOptions>
 {
