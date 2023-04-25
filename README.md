@@ -195,7 +195,7 @@ public class Example
 }
 ```
 
-## Example of creating a Accumalator queue
+## Example of creating a Accumulator queue
 
 ```csharp
 // the message:
