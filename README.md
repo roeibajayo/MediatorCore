@@ -68,16 +68,16 @@ public class Example
         this.publisher = publisher;
     }
 
-    public async Task GetResponse()
+    public async Task GetResponseFromHandlerAsync()
     {
         var request = new SimpleRequest(1);
         var response = await publisher.GetResponseAsync(request);
-        // ... do something with the response
+        // do something with the response ...
     }
 }
 ```
 
-## Example of creating a Request witout response:
+## Example of creating a Request without response:
 
 ```csharp
 // the message:
@@ -121,7 +121,7 @@ public class Example
         this.publisher = publisher;
     }
 
-    public async Task GetResponse()
+    public async Task ExecuteRemoteCodeAsync()
     {
         var message = new SimpleRequest(1);
         await publisher.PublishAsync(message);
@@ -198,7 +198,7 @@ public class Example
         this.publisher = publisher;
     }
 
-    public async Task GetResponse()
+    public async Task SomeAction()
     {
         var message = new SharedBubblingNotificationMessage(1, true);
         await publisher.PublishAsync(message);
