@@ -11,11 +11,11 @@ Supports these messages:
 - Request with response `IResponseHandler<TRequest, TResponse>`
 - Queue `IQueueHandler<TMessage>`
 - Stack `IStackHandler<TMessage>`
-- DebounceQueue `IDebounceQueueMessage<TMessage, TDebounceQueueOptions>`
-- AccumulatorQueue `IAccumulatorQueueHandler<TMessage, TAccumulatorQueueOptions>`
-- ThrottlingQueue `IThrottlingQueueHandler<TMessage, TThrottlingQueueOptions>`
-- BubblingNotification `IBubblingNotificationHandler<TMessage, TBubblingNotificationOptions>`
-- ParallelNotification `IParallelNotificationHandler<TMessage>`
+- Debounce queue `IDebounceQueueMessage<TMessage, TDebounceQueueOptions>`
+- Accumulator queue `IAccumulatorQueueHandler<TMessage, TAccumulatorQueueOptions>`
+- Throttling queue `IThrottlingQueueHandler<TMessage, TThrottlingQueueOptions>`
+- Bubbling notification `IBubblingNotificationHandler<TMessage, TBubblingNotificationOptions>`
+- Parallel notification `IParallelNotificationHandler<TMessage>`
 - More coming soon..
 
 ## Install & Registering:
@@ -36,7 +36,6 @@ services.AddMediatorCore<Startup>();
 
 ## Example of creating a Request/Response:
 
-easy as these few lines:
 ```csharp
 public record SimpleResponse(bool Success);
 public record SimpleRequest(int Id) : IResponseMessage<SimpleResponse>;
@@ -68,6 +67,129 @@ public class Example
 }
 ```
 
+## Example of creating a Request witout response:
+
+```csharp
+public record SimpleRequest(int Id) : IRequestMessage;
+public class SimpleRequestMessageHandler : IRequestHandler<SimpleRequest>
+{
+    public async Task HandleAsync(SimpleRequest message, CancellationToken cancellationToken)
+    {
+        await Task.Delay(300, cancellationToken);
+        throw new Exception("hello world");
+    }
+ 
+    public async Task HandleException(SimpleRequest message,
+        Exception exception,
+        int reties, Func<Task> retry,
+        CancellationToken cancellationToken)
+    {
+        // you can just ignore the exception and continue:
+        // return default;
+
+        // handle the exception..
+
+        if (reties == 3)
+            return;
+
+        await retry();
+    }
+}
+```
+
+then call the request:
+```csharp
+public class Example
+{
+    private readonly IPublisher publisher;
+
+    public Example(IPublisher publisher)
+    {
+        this.publisher = publisher;
+    }
+
+    public async Task GetResponse()
+    {
+        await publisher.PublishAsync(new SimpleRequest(1));
+
+        // you can also use this as fire and forget request:
+        // publisher.Publish(new SimpleRequest(1));
+    }
+}
+```
+
+## Example of creating a Bubbling notification
+
+```csharp
+// the message:
+public record SharedBubblingNotificationMessage(string Id, bool Bubble) : IBubblingNotificationMessage;
+
+// first handler:
+public class BubblingNotification1Options
+    : IBubblingNotificationOptions
+{
+    public int Sort => 1;
+}
+public class BubblingNotification1Handler : IBubblingNotificationHandler<SharedBubblingNotificationMessage, BubblingNotification1Options>
+{
+    public readonly ILogger logger;
+
+    public BubblingNotification1Handler(ILogger logger)
+    {
+        this.logger = logger;
+    }
+
+    public Task<bool> HandleAsync(SharedBubblingNotificationMessage message, CancellationToken cancellationToken)
+    {
+        logger.LogDebug("BubblingNotification1Message: " + message.Id);
+        return Task.FromResult(message.Bubble);
+    }
+}
+
+// second handler:
+public class BubblingNotification2Options
+    : IBubblingNotificationOptions
+{
+    public int Sort => 2;
+}
+public class BubblingNotification2Handler : IBubblingNotificationHandler<SharedBubblingNotificationMessage, BubblingNotification2Options>
+{
+    public readonly ILogger logger;
+
+    public BubblingNotification2Handler(ILogger logger)
+    {
+        this.logger = logger;
+    }
+
+    public Task<bool> HandleAsync(SharedBubblingNotificationMessage message, CancellationToken cancellationToken)
+    {
+        logger.LogDebug("BubblingNotification2Message: " + message.Id);
+        return Task.FromResult(true);
+    }
+}
+```
+
+then call the event:
+```csharp
+public class Example
+{
+    private readonly IPublisher publisher;
+
+    public Example(IPublisher publisher)
+    {
+        this.publisher = publisher;
+    }
+
+    public async Task GetResponse()
+    {
+        await publisher.PublishAsync(new SharedBubblingNotificationMessage(1, true));
+
+        // you can also use this as fire and forget notification:
+        // publisher.Publish(new SharedBubblingNotificationMessage(1, true));
+    }
+}
+```
+
 ## Benchmarks vs MediatR:
 |                                        Method |          Mean |       Error |      StdDev | Allocated |
 |---------------------------------------------- |--------------:|------------:|------------:|----------:|
@@ -81,10 +203,11 @@ public class Example
 |      ParallelNotification_LongRunning_MediatR |      3.205 us |   0.0634 us |   0.0846 us |    1160 B |
 
 ## Roadmap:
+- Documentation
 - Registration validations
 - More handlers types
 - More unitests
-- More examples of use
+- More examples of use (check out the Unitests for now))
 
 ## Contribute
 Please feel free to PR. I highly appreciate any contribution!

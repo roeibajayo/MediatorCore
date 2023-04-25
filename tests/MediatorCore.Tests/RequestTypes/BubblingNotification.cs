@@ -15,7 +15,7 @@ public class BubblingNotification : BaseUnitTest
         var id = "1_" + Guid.NewGuid();
 
         //Act
-        publisher.Publish(new BubblingNotificationMessage(id, true));
+        publisher.Publish(new SharedBubblingNotificationMessage(id, true));
 
         //Assert
         for (var i = 0; i < 10; i++)
@@ -39,7 +39,7 @@ public class BubblingNotification : BaseUnitTest
         var id = "1_" + Guid.NewGuid();
 
         //Act
-        await publisher.PublishAsync(new BubblingNotificationMessage(id, true));
+        await publisher.PublishAsync(new SharedBubblingNotificationMessage(id, true));
 
         //Assert
         if (ReceivedDebugs(logger, "BubblingNotification1Message: " + id) == 1 &&
@@ -59,7 +59,7 @@ public class BubblingNotification : BaseUnitTest
         var id = "2_" + Guid.NewGuid();
 
         //Act
-        publisher.Publish(new BubblingNotificationMessage(id, false));
+        publisher.Publish(new SharedBubblingNotificationMessage(id, false));
 
         //Assert
         if (ReceivedDebugs(logger, "BubblingNotification1Message: " + id) == 1 &&
@@ -71,18 +71,14 @@ public class BubblingNotification : BaseUnitTest
     }
 }
 
+public record SharedBubblingNotificationMessage(string Id, bool Bubble) : IBubblingNotificationMessage;
+
 public class BubblingNotification1Options
     : IBubblingNotificationOptions
 {
     public int Sort => 1;
 }
-public class BubblingNotification2Options
-    : IBubblingNotificationOptions
-{
-    public int Sort => 2;
-}
-public record BubblingNotificationMessage(string Id, bool Bubble) : IBubblingNotificationMessage;
-public class BubblingNotification1Handler : IBubblingNotificationHandler<BubblingNotificationMessage, BubblingNotification1Options>
+public class BubblingNotification1Handler : IBubblingNotificationHandler<SharedBubblingNotificationMessage, BubblingNotification1Options>
 {
     public readonly ILogger logger;
 
@@ -91,13 +87,19 @@ public class BubblingNotification1Handler : IBubblingNotificationHandler<Bubblin
         this.logger = logger;
     }
 
-    public Task<bool> HandleAsync(BubblingNotificationMessage message, CancellationToken cancellationToken)
+    public Task<bool> HandleAsync(SharedBubblingNotificationMessage message, CancellationToken cancellationToken)
     {
         logger.LogDebug("BubblingNotification1Message: " + message.Id);
         return Task.FromResult(message.Bubble);
     }
 }
-public class BubblingNotification2Handler : IBubblingNotificationHandler<BubblingNotificationMessage, BubblingNotification2Options>
+
+public class BubblingNotification2Options
+    : IBubblingNotificationOptions
+{
+    public int Sort => 2;
+}
+public class BubblingNotification2Handler : IBubblingNotificationHandler<SharedBubblingNotificationMessage, BubblingNotification2Options>
 {
     public readonly ILogger logger;
 
@@ -106,7 +108,7 @@ public class BubblingNotification2Handler : IBubblingNotificationHandler<Bubblin
         this.logger = logger;
     }
 
-    public Task<bool> HandleAsync(BubblingNotificationMessage message, CancellationToken cancellationToken)
+    public Task<bool> HandleAsync(SharedBubblingNotificationMessage message, CancellationToken cancellationToken)
     {
         logger.LogDebug("BubblingNotification2Message: " + message.Id);
         return Task.FromResult(true);
