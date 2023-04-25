@@ -17,7 +17,7 @@ public static class DependencyInjection
     /// <summary>
     /// Add MediatorCore services.
     /// </summary>
-    /// <typeparam name="TMarker"></typeparam>
+    /// <typeparam name="TMarker">Marker of the assembly to register services from</typeparam>
     /// <param name="services"></param>
     /// <param name="options">Global MediatorCore configuration</param>
     public static IServiceCollection AddMediatorCore<TMarker>(this IServiceCollection services,

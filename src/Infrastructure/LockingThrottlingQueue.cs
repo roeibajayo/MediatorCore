@@ -1,4 +1,5 @@
 ﻿using System.Collections.Concurrent;
+using MediatorCore.RequestTypes.ThrottlingQueue;
 
 namespace MediatorCore.Infrastructure;
 
