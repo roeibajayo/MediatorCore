@@ -1,5 +1,4 @@
-﻿using MediatorCore.Infrastructure;
-using Microsoft.Extensions.DependencyInjection;
+﻿using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 
 namespace MediatorCore.RequestTypes.DebounceQueue;
@@ -15,35 +14,51 @@ internal sealed class DebounceQueueBackgroundService<TMessage, TOptions> :
     where TOptions : class, IDebounceQueueOptions
 {
     private readonly IServiceScopeFactory serviceScopeFactory;
-    private readonly LockingDebounceQueue<TMessage> queue;
-    private bool running = true;
+    private readonly int debounceMs;
+    private readonly object lockObject = new();
+    private TMessage? lastItem;
+    private CancellationTokenSource? cancellationTokenSource;
 
     public DebounceQueueBackgroundService(IServiceScopeFactory serviceScopeFactory) :
         this(serviceScopeFactory, GetOptions())
     {
     }
 
-    public DebounceQueueBackgroundService(IServiceScopeFactory servicScopeFactory, TOptions options)
+    public DebounceQueueBackgroundService(IServiceScopeFactory serviceScopeFactory, TOptions options)
     {
-        this.serviceScopeFactory = servicScopeFactory;
-        queue = new LockingDebounceQueue<TMessage>(options.DebounceMs);
+        this.serviceScopeFactory = serviceScopeFactory;
+        debounceMs = options.DebounceMs;
     }
 
-    public void Enqueue(TMessage message)
+    public void Enqueue(TMessage item)
     {
-        queue.Enqueue(message);
-    }
-
-    public async Task StartAsync(CancellationToken cancellationToken)
-    {
-        while (!cancellationToken.IsCancellationRequested && running)
+        lock (lockObject)
         {
-            var messageResult = await queue.TryDequeueAsync(cancellationToken);
+            lastItem = item;
 
-            if (!messageResult.Success)
-                continue;
+            //cancel current waiting
+            cancellationTokenSource?.Cancel();
+        }
 
-            ProcessItem(messageResult.Item);
+        cancellationTokenSource?.Dispose();
+
+        //create new waiting task
+        cancellationTokenSource = new CancellationTokenSource();
+        DelayTask(cancellationTokenSource.Token);
+    }
+
+    private async void DelayTask(CancellationToken cancellationToken)
+    {
+        await Task.Delay(debounceMs, cancellationToken);
+
+        lock (lockObject)
+        {
+            if (!cancellationToken.IsCancellationRequested)
+            {
+                cancellationTokenSource?.Dispose();
+                cancellationTokenSource = null;
+                ProcessItem(lastItem);
+            }
         }
     }
 
@@ -69,10 +84,13 @@ internal sealed class DebounceQueueBackgroundService<TMessage, TOptions> :
         }
     }
 
+    public Task StartAsync(CancellationToken cancellationToken)
+    {
+        return Task.CompletedTask;
+    }
+
     public Task StopAsync(CancellationToken cancellationToken)
     {
-        running = false;
-        queue.Dispose();
         return Task.CompletedTask;
     }
 

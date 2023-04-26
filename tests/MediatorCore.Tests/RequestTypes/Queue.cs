@@ -19,7 +19,7 @@ public class Queue : BaseUnitTest
         //Assert
         for (var i = 0; i < 10; i++)
         {
-            if (ReceivedDebugs(logger, "SimpleQueue: 1") > 0)
+            if (ReceivedDebugs(logger, "SimpleQueue: 1") == 1)
             {
                 return;
             }

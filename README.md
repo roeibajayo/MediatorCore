@@ -282,16 +282,20 @@ public class Example
 
 
 ## Benchmarks vs MediatR:
-|                                        Method |          Mean |       Error |      StdDev | Allocated |
-|---------------------------------------------- |--------------:|------------:|------------:|----------:|
-|                         Response_MediatorCore | 32,394.786 us | 641.2623 us | 763.3772 us |     996 B |
-|                              Response_MediatR | 32,578.816 us | 611.8009 us | 572.2789 us |     812 B |
-|                                                                                                       |
-|      ParallelNotification_Simple_MediatorCore |      1.638 us |   0.0327 us |   0.0751 us |     848 B |
-|           ParallelNotification_Simple_MediatR |      2.470 us |   0.0489 us |   0.1084 us |     872 B |
-|                                                                                                       |
-| ParallelNotification_LongRunning_MediatorCore |      2.848 us |   0.0569 us |   0.0919 us |    1128 B |
-|      ParallelNotification_LongRunning_MediatR |      3.205 us |   0.0634 us |   0.0846 us |    1160 B |
+|                                        Method |       Mean |       Error |    StdDev | Allocated |
+|---------------------------------------------- |-----------:|------------:|----------:|----------:|
+|                         Response_MediatorCore |   151.4 ns |    68.35 ns |   3.75 ns |     336 B |
+|                              Response_MediatR |   212.0 ns |   926.96 ns |  50.81 ns |     408 B |
+|                                                                                                  |
+|      ParallelNotification_Simple_MediatorCore | 1,680.1 ns | 2,093.40 ns | 114.75 ns |     872 B |
+|           ParallelNotification_Simple_MediatR | 2,497.9 ns | 2,837.47 ns | 155.53 ns |     872 B |
+|                                                                                                  |
+| ParallelNotification_LongRunning_MediatorCore | 2,884.0 ns | 1,366.19 ns |  74.89 ns |    1136 B |
+|      ParallelNotification_LongRunning_MediatR | 3,202.3 ns |   921.75 ns |  50.52 ns |    1160 B |
+|                                                                                                  |
+|                                 InsertToQueue |   119.7 ns |    99.76 ns |   5.47 ns |      48 B |
+|                                                                                                  |
+|                                 InsertToStack |   281.0 ns | 1,199.47 ns |  65.75 ns |      64 B |
 
 ## Roadmap:
 - Documentation

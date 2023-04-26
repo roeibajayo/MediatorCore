@@ -6,6 +6,10 @@ using Microsoft.Extensions.Hosting;
 namespace MediatorCore.Benchmarks;
 
 [MemoryDiagnoser(false)]
+
+//BenchmarkDotNet cause memory leak, read here: https://github.com/dotnet/BenchmarkDotNet/issues/368
+[WarmupCount(3)]
+[IterationCount(3)]
 public class Benchmark
 {
     private IServiceProvider? rootServiceProvider;
@@ -14,6 +18,8 @@ public class Benchmark
     private SimpleResponseMessage request = new(1);
     private SimpleParallelNotificationMessage simpleParallelNotification = new(1);
     private LongRunningParallelNotificationMessage longRunningParallelNotification = new(1);
+    private QueueMessage queue = new(1);
+    private StackMessage stack = new(1);
 
     private IServiceScope scopedServiceProvider;
     private IPublisher mediatorCorePublisher;
@@ -82,5 +88,19 @@ public class Benchmark
     {
         mediatrPublisher
             .Publish(longRunningParallelNotification);
+    }
+
+    [Benchmark]
+    public void InsertToQueue()
+    {
+        mediatorCorePublisher
+            .Publish(queue);
+    }
+
+    [Benchmark]
+    public void InsertToStack()
+    {
+        mediatorCorePublisher
+            .Publish(stack);
     }
 }

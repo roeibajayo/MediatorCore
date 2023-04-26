@@ -13,13 +13,11 @@ public class SimpleResponseMessageHandler :
 {
     public async Task<SimpleResponse> Handle(SimpleResponseMessage request, CancellationToken cancellationToken)
     {
-        await Task.Delay(30);
         return new SimpleResponse(true);
     }
 
     public async Task<SimpleResponse> HandleAsync(SimpleResponseMessage message, CancellationToken cancellationToken)
     {
-        await Task.Delay(30);
         return new SimpleResponse(true);
     }
 }

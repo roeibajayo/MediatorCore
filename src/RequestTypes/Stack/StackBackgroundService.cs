@@ -1,7 +1,6 @@
-﻿using MediatorCore.Infrastructure;
-using Microsoft.Extensions.DependencyInjection;
+﻿using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
-using System.Threading;
+using System.Collections.Concurrent;
 
 namespace MediatorCore.RequestTypes.Stack;
 
@@ -10,8 +9,9 @@ internal sealed class StackBackgroundService<TMessage> :
     where TMessage : IStackMessage
 {
     private readonly IServiceScopeFactory serviceScopeFactory;
-    private readonly LockingStack<TMessage> stack = new();
-    private bool running = true;
+    private readonly ConcurrentStack<TMessage> stack = new();
+    private readonly object locker = new();
+    private bool running = false;
 
     public StackBackgroundService(IServiceScopeFactory serviceScopeFactory)
     {
@@ -21,27 +21,36 @@ internal sealed class StackBackgroundService<TMessage> :
     internal void Push(TMessage message)
     {
         stack.Push(message);
+        TryProcessItem();
     }
 
-    public async Task StartAsync(CancellationToken cancellationToken)
+    internal async void TryProcessItem()
     {
-        while (!cancellationToken.IsCancellationRequested && running)
+        TMessage item;
+
+        lock (locker)
         {
-            var messageResult = await stack.TryPopAsync(cancellationToken);
+            if (running)
+                return;
 
-            if (!messageResult.Success)
-                continue;
+            if (!stack.TryPop(out item))
+            {
+                return;
+            }
 
-            ProcessItem(messageResult.Item);
+            running = true;
         }
+
+        await ProcessItem(item);
     }
 
-    private async void ProcessItem(TMessage item)
+    private async Task ProcessItem(TMessage item)
     {
         using var scope = serviceScopeFactory.CreateScope();
         var handler = scope.ServiceProvider.GetService<IStackHandler<TMessage>>();
         await ProcessItem(handler, 0, item);
     }
+
     private async Task ProcessItem(IStackHandler<TMessage> handler, int retries, TMessage item)
     {
         try
@@ -56,12 +65,23 @@ internal sealed class StackBackgroundService<TMessage> :
             if (exceptionHandler is not null)
                 await exceptionHandler;
         }
+        finally
+        {
+            lock (locker)
+            {
+                running = false;
+            }
+
+            TryProcessItem();
+        }
     }
 
+    public Task StartAsync(CancellationToken cancellationToken)
+    {
+        return Task.CompletedTask;
+    }
     public Task StopAsync(CancellationToken cancellationToken)
     {
-        running = false;
-        stack.Dispose();
         return Task.CompletedTask;
     }
 }

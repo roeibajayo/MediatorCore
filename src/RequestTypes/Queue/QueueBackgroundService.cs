@@ -1,7 +1,6 @@
-﻿using MediatorCore.Infrastructure;
-using MediatorCore.RequestTypes.Stack;
-using Microsoft.Extensions.DependencyInjection;
+﻿using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
+using System.Collections.Concurrent;
 
 namespace MediatorCore.RequestTypes.Queue;
 
@@ -10,8 +9,9 @@ internal sealed class QueueBackgroundService<TMessage> :
     where TMessage : IQueueMessage
 {
     private readonly IServiceScopeFactory serviceScopeFactory;
-    private readonly LockingQueue<TMessage> queue = new();
-    private bool running = true;
+    private readonly ConcurrentQueue<TMessage> queue = new();
+    private readonly object locker = new();
+    private bool running = false;
 
     public QueueBackgroundService(IServiceScopeFactory serviceScopeFactory)
     {
@@ -21,26 +21,34 @@ internal sealed class QueueBackgroundService<TMessage> :
     internal void Enqueue(TMessage message)
     {
         queue.Enqueue(message);
+        TryProcessItem();
     }
 
-    public async Task StartAsync(CancellationToken cancellationToken)
+    internal async void TryProcessItem()
     {
-        while (!cancellationToken.IsCancellationRequested && running)
+        TMessage item;
+
+        lock (locker)
         {
-            var messageResult = await queue.TryDequeueAsync(cancellationToken);
+            if (running)
+                return;
 
-            if (!messageResult.Success)
-                continue;
+            if (!queue.TryDequeue(out item))
+            {
+                return;
+            }
 
-            ProcessItem(messageResult);
+            running = true;
         }
+
+        await ProcessItem(item);
     }
 
-    private async void ProcessItem((bool Success, TMessage Item) messageResult)
+    private async Task ProcessItem(TMessage item)
     {
         using var scope = serviceScopeFactory.CreateScope();
         var handler = scope.ServiceProvider.GetService<IQueueHandler<TMessage>>();
-        ProcessItem(handler, 0, messageResult.Item);
+        await ProcessItem(handler, 0, item);
     }
 
     private async Task ProcessItem(IQueueHandler<TMessage> handler, int retries, TMessage item)
@@ -57,12 +65,24 @@ internal sealed class QueueBackgroundService<TMessage> :
             if (exceptionHandler is not null)
                 await exceptionHandler;
         }
+        finally
+        {
+            lock (locker)
+            {
+                running = false;
+            }
+
+            TryProcessItem();
+        }
     }
 
+
+    public Task StartAsync(CancellationToken cancellationToken)
+    {
+        return Task.CompletedTask;
+    }
     public Task StopAsync(CancellationToken cancellationToken)
     {
-        running = false;
-        queue.Dispose();
         return Task.CompletedTask;
     }
 }
