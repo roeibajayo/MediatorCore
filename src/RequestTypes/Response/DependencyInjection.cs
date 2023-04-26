@@ -1,5 +1,6 @@
 ﻿using MediatorCore.Infrastructure;
 using Microsoft.Extensions.DependencyInjection;
+using System.Reflection;
 
 namespace MediatorCore.RequestTypes.Response;
 
@@ -8,9 +9,9 @@ internal static class DependencyInjection
     internal static IDictionary<Type, object> responseHandlers =
         new Dictionary<Type, object>();
 
-    internal static void AddResponseHandlers<TMarker>(this IServiceCollection services)
+    internal static void AddResponseHandlers(this IServiceCollection services, Assembly[] assemblies)
     {
-        var handlers = AssemblyExtentions.GetAllInheritsFromMarker(typeof(IResponseHandler<,>), typeof(TMarker));
+        var handlers = AssemblyExtentions.GetAllInherits(typeof(IResponseHandler<,>), assemblies: assemblies);
         foreach (var handler in handlers)
         {
             var types = handler.GetInterfaces()

@@ -1,14 +1,15 @@
 ﻿using MediatorCore.Infrastructure;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
+using System.Reflection;
 
 namespace MediatorCore.RequestTypes.Queue;
 
 internal static class DependencyInjection
 {
-    internal static void AddQueueHandlers<TMarker>(this IServiceCollection services)
+    internal static void AddQueueHandlers(this IServiceCollection services, Assembly[] assemblies)
     {
-        var handlers = AssemblyExtentions.GetAllInheritsFromMarker(typeof(IQueueHandler<>), typeof(TMarker));
+        var handlers = AssemblyExtentions.GetAllInherits(typeof(IQueueHandler<>), assemblies: assemblies);
         foreach (var handler in handlers)
         {
             var messageType = handler.GetInterfaces()

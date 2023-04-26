@@ -1,14 +1,15 @@
 ﻿using MediatorCore.Infrastructure;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
+using System.Reflection;
 
 namespace MediatorCore.RequestTypes.Stack;
 
 internal static class DependencyInjection
 {
-    internal static void AddStackHandlers<TMarker>(this IServiceCollection services)
+    internal static void AddStackHandlers(this IServiceCollection services, Assembly[] assemblies)
     {
-        var handlers = AssemblyExtentions.GetAllInheritsFromMarker(typeof(IStackHandler<>), typeof(TMarker));
+        var handlers = AssemblyExtentions.GetAllInherits(typeof(IStackHandler<>), assemblies: assemblies);
         foreach (var handler in handlers)
         {
             var messageType = handler.GetInterfaces()

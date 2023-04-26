@@ -1,21 +1,22 @@
 ﻿using MediatorCore.Infrastructure;
 using Microsoft.Extensions.DependencyInjection;
+using System.Reflection;
 
 namespace MediatorCore.RequestTypes.Notification;
 
 internal static class DependencyInjection
 {
-    internal static void AddNotificationsHandlers<TMarker>(this IServiceCollection services)
+    internal static void AddNotificationsHandlers(this IServiceCollection services, Assembly[] assemblies)
     {
-        services.AddBubblingNotificationHandlers<TMarker>();
-        services.AddParallelNotificationHandlers<TMarker>();
+        services.AddBubblingNotificationHandlers(assemblies);
+        services.AddParallelNotificationHandlers(assemblies);
     }
 
 
-    private static void AddBubblingNotificationHandlers<TMarker>(this IServiceCollection services)
+    private static void AddBubblingNotificationHandlers(this IServiceCollection services, Assembly[] assemblies)
     {
         var notificaitonHandler = typeof(IBubblingNotificationHandler<,>);
-        var handlers = AssemblyExtentions.GetAllInheritsFromMarker(notificaitonHandler, typeof(TMarker));
+        var handlers = AssemblyExtentions.GetAllInherits(notificaitonHandler, assemblies: assemblies);
         var orders = new Dictionary<Type, List<(Type, IBubblingNotificationOptions)>>();
         foreach (var handler in handlers)
         {
@@ -49,10 +50,10 @@ internal static class DependencyInjection
             }
         }
     }
-    private static void AddParallelNotificationHandlers<TMarker>(this IServiceCollection services)
+    private static void AddParallelNotificationHandlers(this IServiceCollection services, Assembly[] assemblies)
     {
         var notificaitonHandler = typeof(IParallelNotificationHandler<>);
-        var handlers = AssemblyExtentions.GetAllInheritsFromMarker(notificaitonHandler, typeof(TMarker));
+        var handlers = AssemblyExtentions.GetAllInherits(notificaitonHandler, assemblies: assemblies);
         foreach (var handler in handlers)
         {
             var handlerInterface = handler.GetInterfaces()

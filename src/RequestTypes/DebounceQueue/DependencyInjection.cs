@@ -1,14 +1,15 @@
 ﻿using MediatorCore.Infrastructure;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
+using System.Reflection;
 
 namespace MediatorCore.RequestTypes.DebounceQueue;
 
 internal static class DependencyInjection
 {
-    internal static void AddDebounceQueueHandlers<TMarker>(this IServiceCollection services)
+    internal static void AddDebounceQueueHandlers(this IServiceCollection services, Assembly[] assemblies)
     {
-        var handlers = AssemblyExtentions.GetAllInheritsFromMarker(typeof(IDebounceQueueHandler<,>), typeof(TMarker));
+        var handlers = AssemblyExtentions.GetAllInherits(typeof(IDebounceQueueHandler<,>), assemblies: assemblies);
         foreach (var handler in handlers)
         {
             var args = handler.GetInterfaces()

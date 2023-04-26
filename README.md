@@ -33,7 +33,7 @@ Or via the .NET Core command line interface:
 then register the required services easly:
 
 ```csharp
-services.AddMediatorCore<Startup>();
+services.AddMediatorCore();
 ```
 
 ## Example of creating a Request/Response:

@@ -21,7 +21,7 @@ public class BaseUnitTest
                 return _serviceProvider;
 
             var serviceBuilder = new ServiceCollection();
-            serviceBuilder.AddMediatorCore<BaseUnitTest>();
+            serviceBuilder.AddMediatorCore();
             var logger = Substitute.For<ILogger>();
             serviceBuilder.AddSingleton(logger);
             serviceBuilder.AddTransient(typeof(ILogger<>), typeof(FakeCategoryLogger<>));

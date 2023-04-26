@@ -1,14 +1,15 @@
 ﻿using MediatorCore.Infrastructure;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
+using System.Reflection;
 
 namespace MediatorCore.RequestTypes.ThrottlingQueue;
 
 internal static class DependencyInjection
 {
-    internal static void AddThrottlingQueueHandlers<TMarker>(this IServiceCollection services)
+    internal static void AddThrottlingQueueHandlers(this IServiceCollection services, Assembly[] assemblies)
     {
-        var handlers = AssemblyExtentions.GetAllInheritsFromMarker(typeof(IThrottlingQueueHandler<,>), typeof(TMarker));
+        var handlers = AssemblyExtentions.GetAllInherits(typeof(IThrottlingQueueHandler<,>), assemblies: assemblies);
         foreach (var handler in handlers)
         {
             var args = handler.GetInterfaces()

@@ -1,14 +1,15 @@
 ﻿using MediatorCore.Infrastructure;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
+using System.Reflection;
 
 namespace MediatorCore.RequestTypes.AccumulatorQueue;
 
 internal static class DependencyInjection
 {
-    internal static void AddAccumulatorQueueHandlers<TMarker>(this IServiceCollection services)
+    internal static void AddAccumulatorQueueHandlers(this IServiceCollection services, Assembly[] assemblies)
     {
-        var handlers = AssemblyExtentions.GetAllInheritsFromMarker(typeof(IAccumulatorQueueHandler<,>), typeof(TMarker));
+        var handlers = AssemblyExtentions.GetAllInherits(typeof(IAccumulatorQueueHandler<,>), assemblies: assemblies);
         foreach (var handler in handlers)
         {
             var args = handler.GetInterfaces()
