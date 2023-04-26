@@ -48,7 +48,7 @@ internal sealed class QueueBackgroundService<TMessage> :
     {
         using var scope = serviceScopeFactory.CreateScope();
         var handler = scope.ServiceProvider.GetService<IQueueHandler<TMessage>>();
-        await ProcessItem(handler, 0, item);
+        await ProcessItem(handler!, 0, item);
     }
 
     private async Task ProcessItem(IQueueHandler<TMessage> handler, int retries, TMessage item)

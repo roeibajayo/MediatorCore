@@ -48,7 +48,7 @@ internal sealed class StackBackgroundService<TMessage> :
     {
         using var scope = serviceScopeFactory.CreateScope();
         var handler = scope.ServiceProvider.GetService<IStackHandler<TMessage>>();
-        await ProcessItem(handler, 0, item);
+        await ProcessItem(handler!, 0, item);
     }
 
     private async Task ProcessItem(IStackHandler<TMessage> handler, int retries, TMessage item)

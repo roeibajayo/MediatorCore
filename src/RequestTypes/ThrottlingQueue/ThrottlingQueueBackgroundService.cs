@@ -55,7 +55,7 @@ internal sealed class ThrottlingQueueBackgroundService<TMessage, TOptions> :
     {
         using var scope = serviceScopeFactory.CreateScope();
         var handler = scope.ServiceProvider.GetService<IBaseThrottlingQueue<TMessage>>();
-        await ProcessItem(handler, 0, items);
+        await ProcessItem(handler!, 0, items);
     }
 
     private async Task ProcessItem(IBaseThrottlingQueue<TMessage> handler, int retries, IEnumerable<TMessage> items)

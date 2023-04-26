@@ -68,7 +68,7 @@ internal sealed class DebounceQueueBackgroundService<TMessage, TOptions> :
     {
         using var scope = serviceScopeFactory.CreateScope();
         var handler = scope.ServiceProvider.GetService<IBaseDebounceQueue<TMessage>>();
-        await ProcessItem(handler, 0, item);
+        await ProcessItem(handler!, 0, item);
     }
     private async Task ProcessItem(IBaseDebounceQueue<TMessage> handler, int retries, TMessage item)
     {

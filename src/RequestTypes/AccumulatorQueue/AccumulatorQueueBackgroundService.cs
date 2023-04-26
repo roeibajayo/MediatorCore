@@ -33,10 +33,10 @@ internal sealed class AccumulatorQueueBackgroundService<TMessage, TOptions> :
         this.options = options;
     }
 
-    protected override async Task OnExecuteAsync(CancellationToken cancellationToken)
+    protected override Task OnExecuteAsync(CancellationToken cancellationToken)
     {
         if (queue.IsEmpty)
-            return;
+            return Task.CompletedTask;
 
         var items = new List<TMessage>(queue.Count);
         while (!cancellationToken.IsCancellationRequested &&
@@ -47,16 +47,17 @@ internal sealed class AccumulatorQueueBackgroundService<TMessage, TOptions> :
         }
 
         if (items.Count == 0)
-            return;
+            return Task.CompletedTask;
 
         ProcessItems(items);
+        return Task.CompletedTask;
     }
 
     private async void ProcessItems(IEnumerable<TMessage> items)
     {
         using var scope = serviceScopeFactory.CreateScope();
         var handler = scope.ServiceProvider.GetService<IBaseAccumulatorQueue<TMessage>>();
-        await ProcessItem(handler, 0, items);
+        await ProcessItem(handler!, 0, items);
     }
 
     private async Task ProcessItem(IBaseAccumulatorQueue<TMessage> handler, int retries, IEnumerable<TMessage> items)
@@ -97,7 +98,6 @@ internal sealed class AccumulatorQueueBackgroundService<TMessage, TOptions> :
 
         queue.Enqueue(item);
     }
-
 
     private static TOptions GetOptions()
     {
