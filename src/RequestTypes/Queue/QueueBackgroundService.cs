@@ -59,7 +59,7 @@ internal sealed class QueueBackgroundService<TMessage> :
         }
         catch (Exception ex)
         {
-            var exceptionHandler = handler!.HandleException(item, ex, retries,
+            var exceptionHandler = handler!.HandleExceptionAsync(item, ex, retries,
                 () => ProcessItem(handler, retries + 1, item));
 
             if (exceptionHandler is not null)

@@ -5,7 +5,7 @@ public interface IBaseDebounceQueue<TMessage>
 {
     Task HandleAsync(TMessage items);
 
-    Task? HandleException(TMessage message,
+    Task? HandleExceptionAsync(TMessage item,
         Exception exception,
         int retries, Func<Task> retry);
 }

@@ -5,7 +5,7 @@ public interface IRequestHandler<TMessage>
 {
     Task HandleAsync(TMessage message, CancellationToken cancellationToken);
 
-    Task? HandleException(TMessage message,
+    Task? HandleExceptionAsync(TMessage message,
         Exception exception,
         int retries, Func<Task> retry,
         CancellationToken cancellationToken);

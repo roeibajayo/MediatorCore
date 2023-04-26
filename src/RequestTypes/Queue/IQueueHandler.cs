@@ -5,7 +5,7 @@ public interface IQueueHandler<TMessage>
 {
     Task HandleAsync(TMessage message);
 
-    Task? HandleException(TMessage message,
+    Task? HandleExceptionAsync(TMessage items,
         Exception exception,
         int retries, Func<Task> retry);
 }

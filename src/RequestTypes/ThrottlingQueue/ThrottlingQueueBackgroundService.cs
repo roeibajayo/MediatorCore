@@ -66,7 +66,7 @@ internal sealed class ThrottlingQueueBackgroundService<TMessage, TOptions> :
         }
         catch (Exception ex)
         {
-            var exceptionHandler = handler!.HandleException(items, ex, retries,
+            var exceptionHandler = handler!.HandleExceptionAsync(items, ex, retries,
                 () => ProcessItem(handler, retries + 1, items));
 
             if (exceptionHandler is not null)

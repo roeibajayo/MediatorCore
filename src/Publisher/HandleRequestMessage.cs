@@ -25,7 +25,7 @@ internal partial class MessageBusPublisher : IPublisher
         }
         catch (Exception ex)
         {
-            var exceptionHandler = handler!.HandleException(message, ex, retries,
+            var exceptionHandler = handler!.HandleExceptionAsync(message, ex, retries,
                 () => HandleRequestMessage(handler, retries + 1, message, cancellationToken),
                 cancellationToken);
 
