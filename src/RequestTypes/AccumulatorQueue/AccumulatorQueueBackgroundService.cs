@@ -4,8 +4,8 @@ using System.Collections.Concurrent;
 
 namespace MediatorCore.RequestTypes.AccumulatorQueue;
 
-internal interface IAccumulatorQueueBackgroundService<TMessage> 
-    where TMessage : 
+internal interface IAccumulatorQueueBackgroundService<TMessage>
+    where TMessage :
     IAccumulatorQueueMessage
 {
     void Enqueue(TMessage item);
@@ -35,6 +35,9 @@ internal sealed class AccumulatorQueueBackgroundService<TMessage, TOptions> :
 
     protected override async Task OnExecuteAsync(CancellationToken cancellationToken)
     {
+        if (queue.IsEmpty)
+            return;
+
         var items = new List<TMessage>(queue.Count);
         while (!cancellationToken.IsCancellationRequested &&
             (options.MaxItemsOnDequeue is null || options.MaxItemsOnDequeue < items.Count) &&
@@ -64,7 +67,7 @@ internal sealed class AccumulatorQueueBackgroundService<TMessage, TOptions> :
         }
         catch (Exception ex)
         {
-            var exceptionHandler = handler!.HandleException(items, ex, retries,
+            var exceptionHandler = handler!.HandleExceptionAsync(items, ex, retries,
                 () => ProcessItem(handler, retries + 1, items));
 
             if (exceptionHandler is not null)

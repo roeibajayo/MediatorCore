@@ -1,4 +1,4 @@
-using MediatorCore.RequestTypes.Queue;
+using MediatorCore.RequestTypes.AccumulatorQueue;
 using MediatorCore.RequestTypes.Response;
 using MediatorCore.WebapiTester;
 using Microsoft.AspNetCore.Mvc;
@@ -26,7 +26,7 @@ namespace MediatorCore.WebapiTester.Controllers
     }
 }
 
-public record GetWeatherForecastRequest(int from, int to) : IResponseMessage<IEnumerable<WeatherForecast>>, IQueueMessage;
+public record GetWeatherForecastRequest(int from, int to) : IResponseMessage<IEnumerable<WeatherForecast>>, IAccumulatorQueueMessage;
 public class GetWeatherForecastHandler : IResponseHandler<GetWeatherForecastRequest, IEnumerable<WeatherForecast>>
 {
     private static readonly string[] Summaries = new[]
@@ -44,7 +44,18 @@ public class GetWeatherForecastHandler : IResponseHandler<GetWeatherForecastRequ
         }));
     }
 }
-public class GetWeatherForecast2Handler : IQueueHandler<GetWeatherForecastRequest>
+
+public class GetWeatherForecast2HandlerOptions : IAccumulatorQueueOptions
+{
+    public int MsInterval => 100;
+
+    public int? MaxItemsOnDequeue => default;
+
+    public int? MaxItemsStored => default;
+
+    public MaxItemsStoredBehaviors? MaxItemsBehavior => default;
+}
+public class GetWeatherForecast2Handler : IAccumulatorQueueHandler<GetWeatherForecastRequest, GetWeatherForecast2HandlerOptions>
 {
     private readonly ILogger<GetWeatherForecast2Handler> logger;
 
@@ -53,13 +64,13 @@ public class GetWeatherForecast2Handler : IQueueHandler<GetWeatherForecastReques
         this.logger = logger;
     }
 
-    public Task HandleAsync(GetWeatherForecastRequest message)
+    public Task HandleAsync(IEnumerable<GetWeatherForecastRequest> items)
     {
         logger.LogInformation("GetWeatherForecastRequest just logged from queue");
         return Task.CompletedTask;
     }
 
-    public Task? HandleException(GetWeatherForecastRequest message, Exception exception, int retries, Func<Task> retry)
+    public Task? HandleExceptionAsync(IEnumerable<GetWeatherForecastRequest> items, Exception exception, int retries, Func<Task> retry)
     {
         return default;
     }

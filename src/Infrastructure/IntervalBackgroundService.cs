@@ -14,7 +14,13 @@ internal abstract class IntervalBackgroundService : IHostedService
 
     internal int Interval { get; }
 
-    public async Task StartAsync(CancellationToken cancellationToken)
+    public Task StartAsync(CancellationToken cancellationToken)
+    {
+        RunAsync(cancellationToken);
+        return Task.CompletedTask;
+    }
+
+    private async void RunAsync(CancellationToken cancellationToken)
     {
         while (!cancellationToken.IsCancellationRequested)
         {
