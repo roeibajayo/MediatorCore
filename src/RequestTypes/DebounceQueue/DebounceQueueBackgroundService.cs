@@ -38,12 +38,12 @@ internal sealed class DebounceQueueBackgroundService<TMessage, TOptions> :
 
             //cancel current waiting
             cancellationTokenSource?.Cancel();
+
+            cancellationTokenSource?.Dispose();
+
+            //create new waiting task
+            cancellationTokenSource = new CancellationTokenSource();
         }
-
-        cancellationTokenSource?.Dispose();
-
-        //create new waiting task
-        cancellationTokenSource = new CancellationTokenSource();
         DelayTask(cancellationTokenSource.Token);
     }
 
