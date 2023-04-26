@@ -4,7 +4,9 @@ using System.Collections.Concurrent;
 
 namespace MediatorCore.RequestTypes.AccumulatorQueue;
 
-internal interface IAccumulatorQueueBackgroundService<TMessage> where TMessage : IAccumulatorQueueMessage
+internal interface IAccumulatorQueueBackgroundService<TMessage> 
+    where TMessage : 
+    IAccumulatorQueueMessage
 {
     void Enqueue(TMessage item);
 }

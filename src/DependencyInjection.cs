@@ -14,6 +14,8 @@ namespace Microsoft.Extensions.DependencyInjection;
 
 public static class DependencyInjection
 {
+    private static readonly HashSet<string> registredAssemblies = new();
+
     /// <summary>
     /// Add MediatorCore services from the calling assembly.
     /// </summary>
@@ -48,7 +50,11 @@ public static class DependencyInjection
         Assembly[] assemblies,
         Action<MediatorCoreOptions>? options = null)
     {
-        if (!services.Any(x => x.ServiceType == typeof(IPublisher)))
+        var assembliesToAdd = assemblies
+            .Where(assembly => !registredAssemblies.Contains(assembly.FullName!))
+            .ToArray();
+
+        if (registredAssemblies.Count == 0)
         {
             MediatorCoreOptions.instance = new MediatorCoreOptions();
             options?.Invoke(MediatorCoreOptions.instance);
@@ -58,14 +64,17 @@ public static class DependencyInjection
                 MediatorCoreOptions.instance.HandlersLifetime));
         }
 
-        services.AddAccumulatorQueueHandlers(assemblies);
-        services.AddDebounceQueueHandlers(assemblies);
-        services.AddNotificationsHandlers(assemblies);
-        services.AddQueueHandlers(assemblies);
-        services.AddRequestHandlers(assemblies);
-        services.AddResponseHandlers(assemblies);
-        services.AddStackHandlers(assemblies);
-        services.AddThrottlingQueueHandlers(assemblies);
+        services.AddAccumulatorQueueHandlers(assembliesToAdd);
+        services.AddDebounceQueueHandlers(assembliesToAdd);
+        services.AddNotificationsHandlers(assembliesToAdd);
+        services.AddQueueHandlers(assembliesToAdd);
+        services.AddRequestHandlers(assembliesToAdd);
+        services.AddResponseHandlers(assembliesToAdd);
+        services.AddStackHandlers(assembliesToAdd);
+        services.AddThrottlingQueueHandlers(assembliesToAdd);
+
+        foreach (var assembly in assembliesToAdd)
+            registredAssemblies.Add(assembly.FullName!);
 
         return services;
     }

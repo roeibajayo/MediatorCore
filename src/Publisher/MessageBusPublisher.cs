@@ -21,71 +21,115 @@ internal partial class MessageBusPublisher : IPublisher
     public void Publish<TMessage>(TMessage message, CancellationToken cancellationToken = default)
     {
         dynamic handler = this;
+        var found = false;
 
-        switch (message)
+        if (message is IAccumulatorQueueMessage)
         {
-            case IAccumulatorQueueMessage:
-                handler.HandleAccumulatorQueueMessage<TMessage>(message);
-                break;
-            case IQueueMessage:
-                handler.HandleQueueMessage<TMessage>(message);
-                break;
-            case IStackMessage:
-                handler.HandleStackMessage<TMessage>(message);
-                break;
-            case IDebounceQueueMessage:
-                handler.HandleDebounceQueueMessage<TMessage>(message);
-                break;
-            case IRequestMessage:
-                handler.HandleRequestMessage<TMessage>(message, cancellationToken);
-                break;
-            case IBubblingNotificationMessage:
-                handler.HandleBubblingNotificationMessage<TMessage>(message, cancellationToken);
-                break;
-            case IParallelNotificationMessage:
-                handler.HandleParallelNotificationMessage<TMessage>(message, cancellationToken);
-                break;
-            case IThrottlingQueueMessage:
-                handler.HandleThrottlingQueueMessage<TMessage>(message);
-                break;
-            default:
-                throw new NotSupportedException();
+            handler.HandleAccumulatorQueueMessage<TMessage>(message);
+            found = true;
         }
+
+        if (message is IQueueMessage)
+        {
+            handler.HandleQueueMessage<TMessage>(message);
+            found = true;
+        }
+
+        if (message is IStackMessage)
+        {
+            handler.HandleStackMessage<TMessage>(message);
+            found = true;
+        }
+
+        if (message is IDebounceQueueMessage)
+        {
+            handler.HandleDebounceQueueMessage<TMessage>(message);
+            found = true;
+        }
+
+        if (message is IRequestMessage)
+        {
+            handler.HandleRequestMessage<TMessage>(message, cancellationToken);
+            found = true;
+        }
+
+        if (message is IBubblingNotificationMessage)
+        {
+            handler.HandleBubblingNotificationMessage<TMessage>(message, cancellationToken);
+            found = true;
+        }
+
+        if (message is IParallelNotificationMessage)
+        {
+            handler.HandleParallelNotificationMessage<TMessage>(message, cancellationToken);
+            found = true;
+        }
+
+        if (message is IThrottlingQueueMessage)
+        {
+            handler.HandleThrottlingQueueMessage<TMessage>(message);
+            found = true;
+        }
+
+        if (!found)
+            throw new NotSupportedException($"No registerd handlers for type {typeof(TMessage).Name}");
     }
 
     public async Task PublishAsync<TMessage>(TMessage message, CancellationToken cancellationToken = default)
     {
         dynamic handler = this;
+        var found = false;
 
-        switch (message)
+        if (message is IAccumulatorQueueMessage)
         {
-            case IAccumulatorQueueMessage:
-                handler.HandleAccumulatorQueueMessage<TMessage>(message);
-                break;
-            case IQueueMessage:
-                handler.HandleQueueMessage<TMessage>(message);
-                break;
-            case IStackMessage:
-                handler.HandleStackMessage<TMessage>(message);
-                break;
-            case IDebounceQueueMessage:
-                handler.HandleDebounceQueueMessage<TMessage>(message);
-                break;
-            case IRequestMessage:
-                await handler.HandleRequestMessage<TMessage>(message, cancellationToken);
-                break;
-            case IBubblingNotificationMessage:
-                await handler.HandleBubblingNotificationMessage<TMessage>(message, cancellationToken);
-                break;
-            case IParallelNotificationMessage:
-                await handler.HandleParallelNotificationMessage<TMessage>(message, cancellationToken);
-                break;
-            case IThrottlingQueueMessage:
-                handler.HandleThrottlingQueueMessage<TMessage>(message);
-                break;
-            default:
-                throw new NotSupportedException();
+            handler.HandleAccumulatorQueueMessage<TMessage>(message);
+            found = true;
         }
+
+        if (message is IQueueMessage)
+        {
+            handler.HandleQueueMessage<TMessage>(message);
+            found = true;
+        }
+
+        if (message is IStackMessage)
+        {
+            handler.HandleStackMessage<TMessage>(message);
+            found = true;
+        }
+
+        if (message is IDebounceQueueMessage)
+        {
+            handler.HandleDebounceQueueMessage<TMessage>(message);
+            found = true;
+        }
+
+        if (message is IRequestMessage)
+        {
+            await handler.HandleRequestMessage<TMessage>(message, cancellationToken);
+            found = true;
+        }
+
+        if (message is IBubblingNotificationMessage)
+        {
+            await handler.HandleBubblingNotificationMessage<TMessage>(message, cancellationToken);
+            found = true;
+        }
+
+        if (message is IParallelNotificationMessage)
+        {
+            await handler.HandleParallelNotificationMessage<TMessage>(message, cancellationToken);
+            found = true;
+        }
+
+        if (message is IThrottlingQueueMessage)
+        {
+            handler.HandleThrottlingQueueMessage<TMessage>(message);
+            found = true;
+        }
+
+        if (!found)
+            throw new NotSupportedException($"No registerd handlers for type {typeof(TMessage).Name}");
     }
 
     public async Task<TResponse> GetResponseAsync<TResponse>(IResponseMessage<TResponse> message,

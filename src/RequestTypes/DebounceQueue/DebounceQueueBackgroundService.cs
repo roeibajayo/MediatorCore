@@ -3,7 +3,9 @@ using Microsoft.Extensions.Hosting;
 
 namespace MediatorCore.RequestTypes.DebounceQueue;
 
-internal interface IDebounceQueueBackgroundService<TMessage> where TMessage : IDebounceQueueMessage
+internal interface IDebounceQueueBackgroundService<TMessage> 
+    where TMessage : 
+    IDebounceQueueMessage
 {
     void Enqueue(TMessage item);
 }

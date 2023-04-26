@@ -4,7 +4,9 @@ using Microsoft.Extensions.Hosting;
 
 namespace MediatorCore.RequestTypes.ThrottlingQueue;
 
-internal interface IThrottlingQueueBackgroundService<TMessage> where TMessage : IThrottlingQueueMessage
+internal interface IThrottlingQueueBackgroundService<TMessage> 
+    where TMessage : 
+    IThrottlingQueueMessage
 {
     void Enqueue(TMessage item);
 }
@@ -29,17 +31,16 @@ internal sealed class ThrottlingQueueBackgroundService<TMessage, TOptions> :
         this.serviceScopeFactory = serviceScopeFactory;
     }
 
-
     public async Task StartAsync(CancellationToken cancellationToken)
     {
         while (!cancellationToken.IsCancellationRequested && running)
         {
-            var messageResult = await queue.TryDequeueAsync(cancellationToken);
+            var (success, items) = await queue.TryDequeueAsync(cancellationToken);
 
-            if (!messageResult.Success)
+            if (!success)
                 continue;
 
-            ProcessItems(messageResult.Items);
+            ProcessItems(items);
         }
     }
 
@@ -77,7 +78,6 @@ internal sealed class ThrottlingQueueBackgroundService<TMessage, TOptions> :
     {
         queue.Enqueue(item);
     }
-
 
     private static TOptions GetOptions()
     {
