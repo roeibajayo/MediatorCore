@@ -65,7 +65,7 @@ public class SimpleRequestMessageHandler : IRequestHandler<SimpleRequestMessage>
         return Task.CompletedTask;
     }
 
-    public Task? HandleException(SimpleRequestMessage message, Exception exception, int retries,
+    public Task? HandleExceptionAsync(SimpleRequestMessage message, Exception exception, int retries,
         Func<Task> retry, CancellationToken cancellationToken)
     {
         return default;
@@ -86,7 +86,7 @@ public class SimpleRequestMessageHandler2 : IRequestHandler<SimpleRequestMessage
         return Task.CompletedTask;
     }
 
-    public Task? HandleException(SimpleRequestMessage message, Exception exception, int retries,
+    public Task? HandleExceptionAsync(SimpleRequestMessage message, Exception exception, int retries,
         Func<Task> retry, CancellationToken cancellationToken)
     {
         return default;
@@ -108,7 +108,7 @@ public class ExceptionRequestMessageHandler : IRequestHandler<ExceptionRequestMe
         throw new Exception("my text here");
     }
 
-    public async Task HandleException(ExceptionRequestMessage message,
+    public async Task HandleExceptionAsync(ExceptionRequestMessage message,
         Exception exception,
         int retries, Func<Task> retry,
         CancellationToken cancellationToken)

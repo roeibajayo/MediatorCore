@@ -46,7 +46,7 @@ public class SimpleStackMessageHandler : IStackHandler<SimpleStackMessage>
         return Task.CompletedTask;
     }
 
-    public Task? HandleException(SimpleStackMessage message, Exception exception, int retries, Func<Task> retry)
+    public Task? HandleExceptionAsync(SimpleStackMessage message, Exception exception, int retries, Func<Task> retry)
     {
         throw new NotImplementedException();
     }
