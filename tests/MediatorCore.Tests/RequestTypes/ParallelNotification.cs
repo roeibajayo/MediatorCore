@@ -12,8 +12,8 @@ public class ParallelNotification : BaseUnitTest
     public async Task PublishBubbleMessage_ReturnNoErrorsAndDequeue(int counts)
     {
         //Arrange
-        var publisher = serviceProvider.GetService<IPublisher>()!;
-        var logger = serviceProvider.GetService<ILogger>()!;
+        var publisher = ServiceProvider.GetService<IPublisher>()!;
+        var logger = ServiceProvider.GetService<ILogger>()!;
         var id = "1_" + Guid.NewGuid();
 
         //Act

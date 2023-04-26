@@ -10,8 +10,8 @@ public class ThrottlingQueue : BaseUnitTest
     public async Task BasicAdd_ReturnNoErrorsAndDequeue()
     {
         //Arrange
-        var publisher = serviceProvider.GetService<IPublisher>()!;
-        var logger = serviceProvider.GetService<ILogger>()!;
+        var publisher = ServiceProvider.GetService<IPublisher>()!;
+        var logger = ServiceProvider.GetService<ILogger>()!;
 
         //Act
         publisher.Publish(new SimpleThrottlingQueueMessage(0));

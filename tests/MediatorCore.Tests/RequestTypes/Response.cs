@@ -9,7 +9,7 @@ public class Response : BaseUnitTest
     public async Task BasicResponse_ReturnSuccess()
     {
         //Arrange
-        var publisher = serviceProvider.GetService<IPublisher>()!;
+        var publisher = ServiceProvider.GetService<IPublisher>()!;
 
         //Act
         var response = await publisher.GetResponseAsync(new SimpleResponseMessage(1));

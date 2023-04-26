@@ -10,8 +10,8 @@ public class Request : BaseUnitTest
     public async Task BasicAdd_ReturnNoErrorsAndDequeue()
     {
         //Arrange
-        var publisher = serviceProvider.GetService<IPublisher>()!;
-        var logger = serviceProvider.GetService<ILogger>()!;
+        var publisher = ServiceProvider.GetService<IPublisher>()!;
+        var logger = ServiceProvider.GetService<ILogger>()!;
 
         //Act
         await publisher.PublishAsync(new SimpleRequestMessage(1));
@@ -32,8 +32,8 @@ public class Request : BaseUnitTest
     public async Task HandleException_3Retries_ReturnNoErrors()
     {
         //Arrange
-        var publisher = serviceProvider.GetService<IPublisher>()!;
-        var logger = serviceProvider.GetService<ILogger>()!;
+        var publisher = ServiceProvider.GetService<IPublisher>()!;
+        var logger = ServiceProvider.GetService<ILogger>()!;
 
         //Act
         await publisher.PublishAsync(new ExceptionRequestMessage(1));

@@ -8,12 +8,12 @@ namespace MediatorCore.Tests;
 public class BaseUnitTest
 {
     private static IServiceProvider? _serviceProvider;
-    private static object _lock = new object();
+    private static readonly object _lock = new();
 
-    protected IServiceProvider serviceProvider =>
+    protected static IServiceProvider ServiceProvider =>
         _serviceProvider ?? GenerateServiceProvider();
 
-    protected IServiceProvider GenerateServiceProvider()
+    protected static IServiceProvider GenerateServiceProvider()
     {
         lock (_lock)
         {
@@ -39,7 +39,7 @@ public class BaseUnitTest
         }
     }
 
-    protected int ReceivedWarnings(ILogger logger, string contains)
+    protected static int ReceivedWarnings(ILogger logger, string contains)
     {
         return logger
             .ReceivedCalls()
@@ -48,7 +48,7 @@ public class BaseUnitTest
                                     ((IReadOnlyList<KeyValuePair<string, object>>)callArguments[2])
                                         .Last().Value.ToString().Contains(contains));
     }
-    protected int ReceivedErrors(ILogger logger, string contains)
+    protected static int ReceivedErrors(ILogger logger, string contains)
     {
         return logger
             .ReceivedCalls()
@@ -57,7 +57,7 @@ public class BaseUnitTest
                                     ((IReadOnlyList<KeyValuePair<string, object>>)callArguments[2])
                                         .Last().Value.ToString().Contains(contains));
     }
-    protected int ReceivedInformations(ILogger logger, string contains)
+    protected static int ReceivedInformations(ILogger logger, string contains)
     {
         return logger
             .ReceivedCalls()
@@ -66,7 +66,7 @@ public class BaseUnitTest
                                     ((IReadOnlyList<KeyValuePair<string, object>>)callArguments[2])
                                         .Last().Value.ToString().Contains(contains));
     }
-    protected int ReceivedDebugs(ILogger logger, string contains)
+    protected static int ReceivedDebugs(ILogger logger, string contains)
     {
         return logger
             .ReceivedCalls()

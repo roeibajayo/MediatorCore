@@ -10,8 +10,8 @@ public class Stack : BaseUnitTest
     public async Task BasicAdd_ReturnNoErrorsAndDeStack()
     {
         //Arrange
-        var publisher = serviceProvider.GetService<IPublisher>()!;
-        var logger = serviceProvider.GetService<ILogger>()!;
+        var publisher = ServiceProvider.GetService<IPublisher>()!;
+        var logger = ServiceProvider.GetService<ILogger>()!;
 
         //Act
         publisher.Publish(new SimpleStackMessage(1));

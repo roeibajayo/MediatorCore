@@ -10,8 +10,8 @@ public class BubblingNotification : BaseUnitTest
     public async Task PublishBubbleMessage_ReturnNoErrorsAndDequeue()
     {
         //Arrange
-        var publisher = serviceProvider.GetService<IPublisher>()!;
-        var logger = serviceProvider.GetService<ILogger>()!;
+        var publisher = ServiceProvider.GetService<IPublisher>()!;
+        var logger = ServiceProvider.GetService<ILogger>()!;
         var id = "1_" + Guid.NewGuid();
 
         //Act
@@ -34,8 +34,8 @@ public class BubblingNotification : BaseUnitTest
     public async Task AwaitPublishBubbleMessage_ReturnNoErrorsAndDequeue()
     {
         //Arrange
-        var publisher = serviceProvider.GetService<IPublisher>()!;
-        var logger = serviceProvider.GetService<ILogger>()!;
+        var publisher = ServiceProvider.GetService<IPublisher>()!;
+        var logger = ServiceProvider.GetService<ILogger>()!;
         var id = "1_" + Guid.NewGuid();
 
         //Act
@@ -54,8 +54,8 @@ public class BubblingNotification : BaseUnitTest
     public async Task PublishNotBubbleMessage_ReturnNoErrorsAndDequeue()
     {
         //Arrange
-        var publisher = serviceProvider.GetService<IPublisher>()!;
-        var logger = serviceProvider.GetService<ILogger>()!;
+        var publisher = ServiceProvider.GetService<IPublisher>()!;
+        var logger = ServiceProvider.GetService<ILogger>()!;
         var id = "2_" + Guid.NewGuid();
 
         //Act
