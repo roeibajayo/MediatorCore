@@ -15,16 +15,16 @@ public class Benchmark
     private IServiceProvider? rootServiceProvider;
     private CancellationTokenSource? cancellationToken;
 
-    private SimpleResponseMessage request = new(1);
-    private SimpleParallelNotificationMessage simpleParallelNotification = new(1);
-    private LongRunningParallelNotificationMessage longRunningParallelNotification = new(1);
-    private QueueMessage queue = new(1);
-    private StackMessage stack = new(1);
+    private readonly SimpleResponseMessage request = new(1);
+    private readonly SimpleParallelNotificationMessage simpleParallelNotification = new(1);
+    private readonly LongRunningParallelNotificationMessage longRunningParallelNotification = new(1);
+    private readonly QueueMessage queue = new(1);
+    private readonly StackMessage stack = new(1);
 
-    private IServiceScope scopedServiceProvider;
-    private IPublisher mediatorCorePublisher;
-    private MediatR.IPublisher mediatrPublisher;
-    private MediatR.ISender mediatrSender;
+    private IServiceScope? scopedServiceProvider;
+    private IPublisher? mediatorCorePublisher;
+    private MediatR.IPublisher? mediatrPublisher;
+    private MediatR.ISender? mediatrSender;
 
     [GlobalSetup]
     public void Setup()
@@ -51,56 +51,56 @@ public class Benchmark
     [Benchmark]
     public async Task<SimpleResponse> Response_MediatorCore()
     {
-        return await mediatorCorePublisher
+        return await mediatorCorePublisher!
             .GetResponseAsync(request);
     }
 
     [Benchmark]
     public async Task<SimpleResponse> Response_MediatR()
     {
-        return await mediatrSender
+        return await mediatrSender!
             .Send(request);
     }
 
     [Benchmark]
     public void ParallelNotification_Simple_MediatorCore()
     {
-        mediatorCorePublisher
+        mediatorCorePublisher!
             .Publish(simpleParallelNotification);
     }
 
     [Benchmark]
     public void ParallelNotification_Simple_MediatR()
     {
-        mediatrPublisher
+        mediatrPublisher!
             .Publish(simpleParallelNotification);
     }
 
     [Benchmark]
     public void ParallelNotification_LongRunning_MediatorCore()
     {
-        mediatorCorePublisher
+        mediatorCorePublisher!
             .Publish(longRunningParallelNotification);
     }
 
     [Benchmark]
     public void ParallelNotification_LongRunning_MediatR()
     {
-        mediatrPublisher
+        mediatrPublisher!
             .Publish(longRunningParallelNotification);
     }
 
     [Benchmark]
     public void InsertToQueue()
     {
-        mediatorCorePublisher
+        mediatorCorePublisher!
             .Publish(queue);
     }
 
     [Benchmark]
     public void InsertToStack()
     {
-        mediatorCorePublisher
+        mediatorCorePublisher!
             .Publish(stack);
     }
 }
