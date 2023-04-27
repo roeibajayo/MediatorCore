@@ -1,4 +1,5 @@
-﻿using MediatorCore.Infrastructure;
+﻿using MediatorCore.Exceptions;
+using MediatorCore.Infrastructure;
 using Microsoft.Extensions.DependencyInjection;
 using System.Collections.Concurrent;
 
@@ -14,7 +15,7 @@ internal sealed class AccumulatorQueueBackgroundService<TMessage, TOptions> :
     IntervalBackgroundService,
     IAccumulatorQueueBackgroundService<TMessage>
     where TMessage : IAccumulatorQueueMessage
-    where TOptions : class, IAccumulatorQueueOptions
+    where TOptions : IAccumulatorQueueOptions, new()
 {
     private readonly ConcurrentQueue<TMessage> queue;
     private readonly IServiceScopeFactory serviceScopeFactory;
@@ -84,14 +85,14 @@ internal sealed class AccumulatorQueueBackgroundService<TMessage, TOptions> :
 
             if (options.MaxItemsStored == currentItems)
             {
-                if (options.MaxItemsBehavior is null ||
-                    options.MaxItemsBehavior == MaxItemsStoredBehaviors.ThrowExceptionOnAdd)
-                    throw new MaxItemsOnQueueException();
+                if (options.MaxMessagesStoredBehavior is null ||
+                    options.MaxMessagesStoredBehavior == MaxMessagesStoredBehaviors.ThrowExceptionOnEnqueue)
+                    MaxItemsOnQueueException.Throw();
 
-                if (options.MaxItemsBehavior == MaxItemsStoredBehaviors.DiscardEnqueues)
+                if (options.MaxMessagesStoredBehavior == MaxMessagesStoredBehaviors.DiscardEnqueues)
                     return;
 
-                if (options.MaxItemsBehavior == MaxItemsStoredBehaviors.ForceProcess)
+                if (options.MaxMessagesStoredBehavior == MaxMessagesStoredBehaviors.ForceProcess)
                     OnExecuteAsync(CancellationToken.None).Start();
             }
         }

@@ -8,7 +8,7 @@ internal partial class MessageBusPublisher : IPublisher
     private void HandleQueueMessage<TMessage>(TMessage message)
         where TMessage : IQueueMessage
     {
-        var services = serviceProvider.GetServices<QueueBackgroundService<TMessage>>();
+        var services = serviceProvider.GetServices<IQueueBackgroundService<TMessage>>();
         foreach (var service in services)
             service.Enqueue(message);
     }

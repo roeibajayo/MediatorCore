@@ -8,7 +8,7 @@ internal partial class MessageBusPublisher : IPublisher
     private void HandleStackMessage<TMessage>(TMessage message)
         where TMessage : IStackMessage
     {
-        var services = serviceProvider.GetServices<StackBackgroundService<TMessage>>();
+        var services = serviceProvider.GetServices<IStackBackgroundService<TMessage>>();
         foreach (var service in services)
             service.Push(message);
     }

@@ -19,9 +19,9 @@ public static class DependencyInjection
     /// <summary>
     /// Add MediatorCore services from the calling assembly.
     /// </summary>
-    /// <typeparam name="TMarker">Marker of the assembly to register services from</typeparam>
     /// <param name="services"></param>
-    /// <param name="options">Global MediatorCore configuration</param>
+    /// <param name="options">Global MediatorCore configuration (Optional).</param>
+    /// <returns>The original <paramref name="services"/>.</returns>
     public static IServiceCollection AddMediatorCore(this IServiceCollection services,
         Action<MediatorCoreOptions>? options = null)
     {
@@ -33,7 +33,8 @@ public static class DependencyInjection
     /// </summary>
     /// <typeparam name="TMarker">Marker of the assembly to register services from</typeparam>
     /// <param name="services"></param>
-    /// <param name="options">Global MediatorCore configuration</param>
+    /// <param name="options">Global MediatorCore configuration (Optional).</param>
+    /// <returns>The original <paramref name="services"/>.</returns>
     public static IServiceCollection AddMediatorCore<TMarker>(this IServiceCollection services,
         Action<MediatorCoreOptions>? options = null)
     {
@@ -43,15 +44,20 @@ public static class DependencyInjection
     /// <summary>
     /// Add MediatorCore services from the exected assembly.
     /// </summary>
-    /// <typeparam name="TMarker">Marker of the assembly to register services from</typeparam>
+    /// <param name="assemblies">Array of assemblies to register handlers from.</param>
     /// <param name="services"></param>
-    /// <param name="options">Global MediatorCore configuration</param>
+    /// <param name="options">Global MediatorCore configuration (Optional).</param>
+    /// <returns>The original <paramref name="services"/>.</returns>
     public static IServiceCollection AddMediatorCore(this IServiceCollection services,
         Assembly[] assemblies,
         Action<MediatorCoreOptions>? options = null)
     {
+        if (assemblies is null)
+            throw new ArgumentNullException(nameof(assemblies));
+
         var assembliesToAdd = assemblies
-            .Where(assembly => !registredAssemblies.Contains(assembly.FullName!))
+            .Distinct()
+            .Where(assembly => assemblies is not null && !registredAssemblies.Contains(assembly.FullName!))
             .ToArray();
 
         if (registredAssemblies.Count == 0)

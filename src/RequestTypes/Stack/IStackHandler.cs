@@ -1,6 +1,6 @@
 ﻿namespace MediatorCore.RequestTypes.Stack;
 
-public interface IStackHandler<TMessage>
+public interface IBaseStackHandler<TMessage>
     where TMessage : IStackMessage
 {
     Task HandleAsync(TMessage message);
@@ -8,4 +8,11 @@ public interface IStackHandler<TMessage>
     Task? HandleExceptionAsync(TMessage message,
         Exception exception,
         int retries, Func<Task> retry);
+}
+
+public interface IStackHandler<TMessage, TOptions> :
+    IBaseStackHandler<TMessage>
+    where TMessage : IStackMessage
+    where TOptions : IStackOptions, new()
+{
 }

@@ -9,19 +9,26 @@ internal static class DependencyInjection
 {
     internal static void AddQueueHandlers(this IServiceCollection services, Assembly[] assemblies)
     {
-        var handlers = AssemblyExtentions.GetAllInherits(typeof(IQueueHandler<>), assemblies: assemblies);
+        var handlers = AssemblyExtentions.GetAllInherits(typeof(IQueueHandler<,>), assemblies: assemblies);
         foreach (var handler in handlers)
         {
-            var messageType = handler.GetInterfaces()
-                .First(x => x.IsGenericType && x.GetGenericTypeDefinition() == typeof(IQueueHandler<>))
-                .GetGenericArguments()
-                .First();
+            var args = handler.GetInterfaces()
+                .First(x => x.IsGenericType && x.GetGenericTypeDefinition() == typeof(IQueueHandler<,>))
+                .GetGenericArguments();
 
-            var serviceType = typeof(QueueBackgroundService<>).MakeGenericType(messageType);
-            services.AddSingleton(serviceType);
-            services.AddSingleton(s => s.GetRequiredService(serviceType) as IHostedService);
+            var messageType = args[0];
+            var optionsType = args[1];
 
-            var handlerInterface = typeof(IQueueHandler<>).MakeGenericType(messageType);
+            var serviceType = typeof(QueueBackgroundService<,>)
+                .MakeGenericType(messageType, optionsType);
+            var serviceInterface = typeof(IQueueBackgroundService<>)
+                .MakeGenericType(messageType);
+            services.AddSingleton(serviceInterface, serviceType);
+            services.AddSingleton(s => s.GetRequiredService(serviceInterface) as IHostedService);
+
+            var handlerInterface = typeof(IBaseQueueHandler<>)
+                .MakeGenericType(messageType);
+
             services.Add(new ServiceDescriptor(handlerInterface,
                 handler,
                 MediatorCoreOptions.instance.HandlersLifetime));

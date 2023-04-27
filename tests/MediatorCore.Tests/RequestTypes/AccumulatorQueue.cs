@@ -41,7 +41,7 @@ public class SimpleAccumulatorQueueOptions :
     public int MsInterval => 500;
     public int? MaxItemsOnDequeue => null;
     public int? MaxItemsStored => null;
-    public MaxItemsStoredBehaviors? MaxItemsBehavior => null;
+    public MaxMessagesStoredBehaviors? MaxMessagesStoredBehavior => null;
 }
 public record SimpleAccumulatorQueueMessage(int Id) : IAccumulatorQueueMessage;
 public class SimpleAccumulatorQueueMessageHandler :

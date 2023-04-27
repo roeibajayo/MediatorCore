@@ -1,6 +1,6 @@
 ﻿namespace MediatorCore.RequestTypes.ThrottlingQueue;
 
-public interface IBaseThrottlingQueue<TMessage>
+public interface IBaseThrottlingQueueHandler<TMessage>
     where TMessage : IThrottlingQueueMessage
 {
     Task HandleAsync(IEnumerable<TMessage> items);
@@ -11,7 +11,7 @@ public interface IBaseThrottlingQueue<TMessage>
 }
 
 public interface IThrottlingQueueHandler<TMessage, TOptions> :
-    IBaseThrottlingQueue<TMessage>
+    IBaseThrottlingQueueHandler<TMessage>
     where TMessage : IThrottlingQueueMessage
     where TOptions : class, IThrottlingQueueOptions, new()
 {

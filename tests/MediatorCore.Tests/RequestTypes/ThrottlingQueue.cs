@@ -59,8 +59,12 @@ public class ThrottlingQueue : BaseUnitTest
 public class SimpleThrottlingQueueOptions :
     IThrottlingQueueOptions
 {
-    public ThrottlingTimeSpan[] ThrottlingTimeSpans =>
-        new[] { new ThrottlingTimeSpan(TimeSpan.FromMilliseconds(500), 1) };
+    public ThrottlingWindow[] ThrottlingTimeSpans =>
+        new[] { new ThrottlingWindow(TimeSpan.FromMilliseconds(500), 1) };
+
+    public int? MaxMessagesStored => default;
+
+    public MaxMessagesStoredBehaviors? MaxMessagesStoredBehavior => default;
 }
 public record SimpleThrottlingQueueMessage(int Id) : IThrottlingQueueMessage;
 public class SimpleThrottlingQueueMessageHandler :

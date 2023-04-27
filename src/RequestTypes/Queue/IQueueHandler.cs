@@ -1,6 +1,6 @@
 ﻿namespace MediatorCore.RequestTypes.Queue;
 
-public interface IQueueHandler<TMessage>
+public interface IBaseQueueHandler<TMessage>
     where TMessage : IQueueMessage
 {
     Task HandleAsync(TMessage message);
@@ -8,4 +8,11 @@ public interface IQueueHandler<TMessage>
     Task? HandleExceptionAsync(TMessage items,
         Exception exception,
         int retries, Func<Task> retry);
+}
+
+public interface IQueueHandler<TMessage, TOptions> :
+    IBaseQueueHandler<TMessage>
+    where TMessage : IQueueMessage
+    where TOptions : IQueueOptions, new()
+{
 }

@@ -1,4 +1,5 @@
 using MediatorCore.RequestTypes.Stack;
+using MediatorCore.RequestTypes.ThrottlingQueue;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 
@@ -30,8 +31,15 @@ public class Stack : BaseUnitTest
     }
 }
 
+public class SimpleStackHandlerOptions : IStackOptions
+{
+    public int? MaxMessagesStored => default;
+
+    public MaxMessagesStoredBehaviors? MaxMessagesStoredBehavior => default;
+}
+
 public record SimpleStackMessage(int Id) : IStackMessage;
-public class SimpleStackMessageHandler : IStackHandler<SimpleStackMessage>
+public class SimpleStackMessageHandler : IStackHandler<SimpleStackMessage, SimpleStackHandlerOptions>
 {
     public readonly ILogger logger;
 

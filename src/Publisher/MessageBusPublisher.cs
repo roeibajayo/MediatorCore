@@ -1,4 +1,5 @@
-﻿using MediatorCore.RequestTypes.AccumulatorQueue;
+﻿using MediatorCore.Exceptions;
+using MediatorCore.RequestTypes.AccumulatorQueue;
 using MediatorCore.RequestTypes.DebounceQueue;
 using MediatorCore.RequestTypes.Notification;
 using MediatorCore.RequestTypes.Queue;
@@ -72,7 +73,9 @@ internal partial class MessageBusPublisher : IPublisher
         }
 
         if (!found)
-            throw new NotSupportedException($"No registerd handlers for type {typeof(TMessage).Name}");
+        {
+            NoRegisteredHandlerException.Throw<TMessage>();
+        }
     }
 
     public async Task PublishAsync<TMessage>(TMessage message, CancellationToken cancellationToken = default)
@@ -129,7 +132,9 @@ internal partial class MessageBusPublisher : IPublisher
         }
 
         if (!found)
-            throw new NotSupportedException($"No registerd handlers for type {typeof(TMessage).Name}");
+        {
+            NoRegisteredHandlerException.Throw<TMessage>();
+        }
     }
 
     public async Task<TResponse> GetResponseAsync<TResponse>(IResponseMessage<TResponse> message,

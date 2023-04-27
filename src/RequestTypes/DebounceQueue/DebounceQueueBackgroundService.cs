@@ -13,7 +13,7 @@ internal sealed class DebounceQueueBackgroundService<TMessage, TOptions> :
     IHostedService,
     IDebounceQueueBackgroundService<TMessage>
     where TMessage : class, IDebounceQueueMessage
-    where TOptions : class, IDebounceQueueOptions
+    where TOptions : IDebounceQueueOptions, new()
 {
     private readonly IServiceScopeFactory serviceScopeFactory;
     private readonly int debounceMs;

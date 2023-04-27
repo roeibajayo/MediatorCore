@@ -1,28 +1,32 @@
 ﻿namespace MediatorCore.RequestTypes.ThrottlingQueue;
 
 /// <summary>
-/// Represents the throttling info
+/// Represents the throttling window info.
 /// </summary>
-/// <param name="TimeSpan">Duration of throttling</param>
-/// <param name="Executes">The number of times the action was executed during the throttling</param>
-/// <param name="Fixed">Determines whether the throttling is fixed or sliding</param>
-public sealed record ThrottlingTimeSpan(TimeSpan TimeSpan, int Executes, bool Fixed = false)
+/// <param name="Duration">Duration of throttling window.</param>
+/// <param name="PermitLimit">Maximum number of permit counters that can be allowed in a window.</param>
+/// <param name="Fixed">Determines whether the throttling is fixed to round time (eg. 12:00) or not.</param>
+public sealed record ThrottlingWindow(TimeSpan Duration, int PermitLimit, bool Fixed = false)
 {
+    public int PermitLimit { get; } = PermitLimit >= 0 ?
+        PermitLimit :
+        throw new ArgumentException("PermitLimit cannot be negative.", nameof(PermitLimit));
+
     public DateTimeOffset GetLastStart() => GetLastStart(DateTimeOffset.Now);
     public DateTimeOffset GetLastStart(DateTimeOffset relativeTo)
     {
         if (Fixed)
         {
-            if (TimeSpan.TotalHours < 1)
+            if (Duration.TotalHours < 1)
                 return new DateTime(relativeTo.Year, relativeTo.Month, relativeTo.Day, relativeTo.Hour, relativeTo.Minute, 0);
 
-            if (TimeSpan.TotalDays < 1)
+            if (Duration.TotalDays < 1)
                 return new DateTime(relativeTo.Year, relativeTo.Month, relativeTo.Day, relativeTo.Hour, 0, 0);
 
-            if (TimeSpan.TotalDays < 7)
+            if (Duration.TotalDays < 7)
                 return new DateTime(relativeTo.Year, relativeTo.Month, relativeTo.Day);
 
-            if (TimeSpan.TotalDays >= 7)
+            if (Duration.TotalDays >= 7)
             {
                 var result = new DateTime(relativeTo.Year, relativeTo.Month, relativeTo.Day);
                 while (result.DayOfWeek != DayOfWeek.Sunday)
@@ -32,11 +36,11 @@ public sealed record ThrottlingTimeSpan(TimeSpan TimeSpan, int Executes, bool Fi
                 return result;
             }
         }
-        return relativeTo - TimeSpan;
+        return relativeTo - Duration;
     }
     public DateTimeOffset GetLastEnd() => GetLastEnd(DateTimeOffset.Now);
     public DateTimeOffset GetLastEnd(DateTimeOffset relativeTo)
     {
-        return !Fixed ? relativeTo : GetLastStart(relativeTo) + TimeSpan;
+        return !Fixed ? relativeTo : GetLastStart(relativeTo) + Duration;
     }
 }

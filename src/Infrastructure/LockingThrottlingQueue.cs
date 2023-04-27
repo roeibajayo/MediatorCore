@@ -9,7 +9,7 @@ namespace MediatorCore.Infrastructure;
 /// <typeparam name="T"></typeparam>
 internal sealed class LockingThrottlingQueue<T> : IDisposable
 {
-    private readonly ThrottlingTimeSpan[] dateParts;
+    private readonly ThrottlingWindow[] dateParts;
 
     private bool running = true;
     private readonly ConcurrentQueue<T> queue = new();
@@ -20,13 +20,13 @@ internal sealed class LockingThrottlingQueue<T> : IDisposable
 
     private readonly object locker = new();
 
-    internal LockingThrottlingQueue(ThrottlingTimeSpan[] dateParts)
+    internal LockingThrottlingQueue(ThrottlingWindow[] dateParts)
     {
         if (dateParts == null || dateParts.Length == 0)
             throw new ArgumentOutOfRangeException(null, nameof(dateParts));
 
         foreach (var unit in dateParts)
-            if (unit == null || unit.TimeSpan.TotalSeconds <= 0 || unit.Executes <= 0)
+            if (unit == null || unit.Duration.TotalSeconds <= 0 || unit.PermitLimit <= 0)
                 throw new ArgumentOutOfRangeException(null, nameof(dateParts));
 
         this.dateParts = dateParts;
@@ -115,6 +115,7 @@ internal sealed class LockingThrottlingQueue<T> : IDisposable
 
         return (false, Enumerable.Empty<T>());
     }
+
     /// <summary>
     /// Removes all items from the queue and clears the history of items that have been dequeued.
     /// </summary>
@@ -124,7 +125,7 @@ internal sealed class LockingThrottlingQueue<T> : IDisposable
         executes.Clear();
     }
 
-    private int CountCurrentDequeue(ThrottlingTimeSpan unit)
+    private int CountCurrentDequeue(ThrottlingWindow unit)
     {
         var from = unit.GetLastStart();
         return CountDequeue(from);
@@ -151,19 +152,19 @@ internal sealed class LockingThrottlingQueue<T> : IDisposable
 
         var shortestDate = dateParts
             .Where(x => (lastExecuted != null || x.Fixed) && // ignore not fixed if not last execute
-                (x.Fixed ? x.GetLastStart(now) : lastExecuted) + x.TimeSpan > now)
+                (x.Fixed ? x.GetLastStart(now) : lastExecuted) + x.Duration > now)
             .MinBy(x => x.Fixed ?
-                (now - x.GetLastStart(now) + x.TimeSpan).TotalMilliseconds :
-                x.TimeSpan.TotalMilliseconds);
+                (now - x.GetLastStart(now) + x.Duration).TotalMilliseconds :
+                x.Duration.TotalMilliseconds);
 
         DateTimeOffset? next = null;
         if (shortestDate!.Fixed)
         {
-            next = shortestDate.GetLastStart(now) + shortestDate.TimeSpan;
+            next = shortestDate.GetLastStart(now) + shortestDate.Duration;
         }
         else if (lastExecuted != null)
         {
-            next = lastExecuted + shortestDate.TimeSpan;
+            next = lastExecuted + shortestDate.Duration;
         }
         return next;
     }
@@ -206,7 +207,7 @@ internal sealed class LockingThrottlingQueue<T> : IDisposable
         {
             var unitCompleted = CountCurrentDequeue(unit);
             completed += unitCompleted;
-            var unitCount = unit.Executes - unitCompleted;
+            var unitCount = unit.PermitLimit - unitCompleted;
 
             if (count == -1 || unitCount < count)
             {
@@ -234,6 +235,8 @@ internal sealed class LockingThrottlingQueue<T> : IDisposable
         }
     }
 
+    internal int Count => 
+        queue.Count;
 
     public void Dispose()
     {

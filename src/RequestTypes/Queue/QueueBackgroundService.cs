@@ -1,25 +1,55 @@
-﻿using Microsoft.Extensions.DependencyInjection;
+﻿using MediatorCore.Exceptions;
+using MediatorCore.RequestTypes.ThrottlingQueue;
+using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using System.Collections.Concurrent;
 
 namespace MediatorCore.RequestTypes.Queue;
 
-internal sealed class QueueBackgroundService<TMessage> :
-    IHostedService
+internal interface IQueueBackgroundService<TMessage>
     where TMessage : IQueueMessage
 {
+    void Enqueue(TMessage item);
+}
+internal sealed class QueueBackgroundService<TMessage, TOptions> :
+    IQueueBackgroundService<TMessage>,
+    IHostedService
+    where TMessage : IQueueMessage
+    where TOptions : IQueueOptions
+{
     private readonly IServiceScopeFactory serviceScopeFactory;
+    private readonly TOptions options;
     private readonly ConcurrentQueue<TMessage> queue = new();
     private readonly object locker = new();
     private bool running = false;
 
-    public QueueBackgroundService(IServiceScopeFactory serviceScopeFactory)
+    public QueueBackgroundService(IServiceScopeFactory serviceScopeFactory) :
+        this(serviceScopeFactory, GetOptions())
+    {
+    }
+    public QueueBackgroundService(IServiceScopeFactory serviceScopeFactory, TOptions options)
     {
         this.serviceScopeFactory = serviceScopeFactory;
+        this.options = options;
     }
 
-    internal void Enqueue(TMessage message)
+    public void Enqueue(TMessage message)
     {
+        if (options.MaxMessagesStored is not null)
+        {
+            var currentItems = queue.Count;
+
+            if (options.MaxMessagesStored == currentItems)
+            {
+                if (options.MaxMessagesStoredBehavior is null ||
+                    options.MaxMessagesStoredBehavior == MaxMessagesStoredBehaviors.ThrowExceptionOnEnqueue)
+                    MaxItemsOnQueueException.Throw();
+
+                if (options.MaxMessagesStoredBehavior == MaxMessagesStoredBehaviors.DiscardEnqueues)
+                    return;
+            }
+        }
+
         queue.Enqueue(message);
         TryProcessItem();
     }
@@ -47,11 +77,11 @@ internal sealed class QueueBackgroundService<TMessage> :
     private async Task ProcessItem(TMessage item)
     {
         using var scope = serviceScopeFactory.CreateScope();
-        var handler = scope.ServiceProvider.GetService<IQueueHandler<TMessage>>();
+        var handler = scope.ServiceProvider.GetService<IBaseQueueHandler<TMessage>>();
         await ProcessItem(handler!, 0, item);
     }
 
-    private async Task ProcessItem(IQueueHandler<TMessage> handler, int retries, TMessage item)
+    private async Task ProcessItem(IBaseQueueHandler<TMessage> handler, int retries, TMessage item)
     {
         try
         {
@@ -84,5 +114,11 @@ internal sealed class QueueBackgroundService<TMessage> :
     public Task StopAsync(CancellationToken cancellationToken)
     {
         return Task.CompletedTask;
+    }
+
+    private static TOptions GetOptions()
+    {
+        var options = Activator.CreateInstance<TOptions>();
+        return options;
     }
 }

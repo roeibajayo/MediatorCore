@@ -1,4 +1,5 @@
-﻿using MediatorCore.RequestTypes.Response;
+﻿using MediatorCore.Exceptions;
+using MediatorCore.RequestTypes.Response;
 
 namespace MediatorCore.Publisher;
 
@@ -7,18 +8,12 @@ internal partial class MessageBusPublisher : IPublisher
     private async Task<TResponse> HandleResponseMessageAsync<TResponse>(IResponseMessage<TResponse> message,
         CancellationToken cancellationToken)
     {
-        if (message is null)
-        {
-            throw new ArgumentNullException("message for Response handler can't be null");
-        }
+        MessageIsNullException.ThrowIfNull(message);
 
         DependencyInjection.responseHandlers.TryGetValue(message.GetType(),
             out var handler);
 
-        if (handler is null)
-        {
-            throw new ArgumentNullException("no registered handler for request " + message.GetType().Name);
-        }
+        NoRegisteredHandlerException.ThrowIfNull(handler, message.GetType());
 
         return await ((BaseResponseHandlerWrapper<TResponse>)handler)
             .HandleAsync(message, serviceProvider, cancellationToken);

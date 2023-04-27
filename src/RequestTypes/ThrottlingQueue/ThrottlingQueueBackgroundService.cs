@@ -1,11 +1,12 @@
-﻿using MediatorCore.Infrastructure;
+﻿using MediatorCore.Exceptions;
+using MediatorCore.Infrastructure;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 
 namespace MediatorCore.RequestTypes.ThrottlingQueue;
 
-internal interface IThrottlingQueueBackgroundService<TMessage> 
-    where TMessage : 
+internal interface IThrottlingQueueBackgroundService<TMessage>
+    where TMessage :
     IThrottlingQueueMessage
 {
     void Enqueue(TMessage item);
@@ -14,10 +15,11 @@ internal sealed class ThrottlingQueueBackgroundService<TMessage, TOptions> :
     IThrottlingQueueBackgroundService<TMessage>,
     IHostedService
     where TMessage : IThrottlingQueueMessage
-    where TOptions : class, IThrottlingQueueOptions
+    where TOptions : IThrottlingQueueOptions, new()
 {
     private readonly LockingThrottlingQueue<TMessage> queue;
     private readonly IServiceScopeFactory serviceScopeFactory;
+    private readonly TOptions options;
     private bool running = true;
 
     public ThrottlingQueueBackgroundService(IServiceScopeFactory serviceScopeFactory) :
@@ -27,8 +29,9 @@ internal sealed class ThrottlingQueueBackgroundService<TMessage, TOptions> :
 
     public ThrottlingQueueBackgroundService(IServiceScopeFactory serviceScopeFactory, TOptions options)
     {
-        queue = new(options.ThrottlingTimeSpans);
         this.serviceScopeFactory = serviceScopeFactory;
+        this.options = options;
+        queue = new(options.ThrottlingTimeSpans);
     }
 
     public async Task StartAsync(CancellationToken cancellationToken)
@@ -54,11 +57,11 @@ internal sealed class ThrottlingQueueBackgroundService<TMessage, TOptions> :
     private async void ProcessItems(IEnumerable<TMessage> items)
     {
         using var scope = serviceScopeFactory.CreateScope();
-        var handler = scope.ServiceProvider.GetService<IBaseThrottlingQueue<TMessage>>();
+        var handler = scope.ServiceProvider.GetService<IBaseThrottlingQueueHandler<TMessage>>();
         await ProcessItem(handler!, 0, items);
     }
 
-    private async Task ProcessItem(IBaseThrottlingQueue<TMessage> handler, int retries, IEnumerable<TMessage> items)
+    private async Task ProcessItem(IBaseThrottlingQueueHandler<TMessage> handler, int retries, IEnumerable<TMessage> items)
     {
         try
         {
@@ -76,6 +79,21 @@ internal sealed class ThrottlingQueueBackgroundService<TMessage, TOptions> :
 
     public void Enqueue(TMessage item)
     {
+        if (options.MaxMessagesStored is not null)
+        {
+            var currentItems = queue.Count;
+
+            if (options.MaxMessagesStored == currentItems)
+            {
+                if (options.MaxMessagesStoredBehavior is null ||
+                    options.MaxMessagesStoredBehavior == MaxMessagesStoredBehaviors.ThrowExceptionOnEnqueue)
+                    MaxItemsOnQueueException.Throw();
+
+                if (options.MaxMessagesStoredBehavior == MaxMessagesStoredBehaviors.DiscardEnqueues)
+                    return;
+            }
+        }
+
         queue.Enqueue(item);
     }
 

@@ -53,7 +53,7 @@ public class GetWeatherForecast2HandlerOptions : IAccumulatorQueueOptions
 
     public int? MaxItemsStored => default;
 
-    public MaxItemsStoredBehaviors? MaxItemsBehavior => default;
+    public MaxMessagesStoredBehaviors? MaxMessagesStoredBehavior => default;
 }
 public class GetWeatherForecast2Handler : IAccumulatorQueueHandler<GetWeatherForecastRequest, GetWeatherForecast2HandlerOptions>
 {
