@@ -118,6 +118,10 @@ internal sealed class StackBackgroundService<TMessage, TOptions> :
     private static TOptions GetOptions()
     {
         var options = Activator.CreateInstance<TOptions>();
+
+        if (options.MaxMessagesStored is not null && options.MaxMessagesStored < 1)
+            throw new ArgumentOutOfRangeException(nameof(options.MaxMessagesStored));
+
         return options;
     }
 }

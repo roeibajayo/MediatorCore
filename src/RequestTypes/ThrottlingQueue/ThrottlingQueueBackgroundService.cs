@@ -100,6 +100,13 @@ internal sealed class ThrottlingQueueBackgroundService<TMessage, TOptions> :
     private static TOptions GetOptions()
     {
         var options = Activator.CreateInstance<TOptions>();
+
+        if (options.ThrottlingTimeSpans is null || options.ThrottlingTimeSpans.Length == 0)
+            throw new ArgumentOutOfRangeException(nameof(options.ThrottlingTimeSpans));
+
+        if (options.MaxMessagesStored is not null && options.MaxMessagesStored < 1)
+            throw new ArgumentOutOfRangeException(nameof(options.MaxMessagesStored));
+
         return options;
     }
 }

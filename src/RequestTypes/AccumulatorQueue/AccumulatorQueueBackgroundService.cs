@@ -103,6 +103,16 @@ internal sealed class AccumulatorQueueBackgroundService<TMessage, TOptions> :
     private static TOptions GetOptions()
     {
         var options = Activator.CreateInstance<TOptions>();
+
+        if (options.MaxMessagesOnDequeue is not null && options.MaxMessagesOnDequeue < 1)
+            throw new ArgumentOutOfRangeException(nameof(options.MaxMessagesOnDequeue));
+
+        if (options.MaxMessagesStored is not null && options.MaxMessagesStored < 1)
+            throw new ArgumentOutOfRangeException(nameof(options.MaxMessagesStored));
+
+        if (options.MsInterval < 100)
+            throw new ArgumentException("MsInternal must be aleast 100ms.", nameof(options.MsInterval));
+
         return options;
     }
 }
