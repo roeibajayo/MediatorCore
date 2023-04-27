@@ -3,7 +3,7 @@
 public interface IAccumulatorQueueOptions
 {
     int MsInterval { get; }
-    int? MaxItemsOnDequeue { get; }
-    int? MaxItemsStored { get; }
+    int? MaxMessagesOnDequeue { get; }
+    int? MaxMessagesStored { get; }
     MaxMessagesStoredBehaviors? MaxMessagesStoredBehavior { get; }
 }

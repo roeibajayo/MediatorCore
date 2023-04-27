@@ -1,11 +1,11 @@
 ﻿namespace MediatorCore.Exceptions;
 
-public class MaxItemsOnQueueException : Exception
+public class MaxMessagesOnQueueException : Exception
 {
-    internal MaxItemsOnQueueException() : base("Max items on queue reached.") { }
+    internal MaxMessagesOnQueueException() : base("Max items on queue reached.") { }
 
     internal static void Throw()
     {
-        throw new MaxItemsOnQueueException();
+        throw new MaxMessagesOnQueueException();
     }
 }

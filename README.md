@@ -216,9 +216,9 @@ public class LogsAccumulatorQueueOptions :
     IAccumulatorQueueOptions
 {
     public int MsInterval => 60 * 1000;
-    public int? MaxItemsOnDequeue => 100;
-    public int? MaxItemsStored => 1000;
-    public MaxItemsStoredBehaviors? MaxItemsBehavior => MaxItemsStoredBehaviors.ThrowExceptionOnAdd;
+    public int? MaxMessagesOnDequeue => 100;
+    public int? MaxMessagesStored => 1000;
+    public MaxMessagesStoredBehaviors? MaxMessagesBehavior => MaxMessagesStoredBehaviors.ThrowExceptionOnAdd;
 }
 
 // the message:

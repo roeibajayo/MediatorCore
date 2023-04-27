@@ -87,7 +87,7 @@ internal sealed class ThrottlingQueueBackgroundService<TMessage, TOptions> :
             {
                 if (options.MaxMessagesStoredBehavior is null ||
                     options.MaxMessagesStoredBehavior == MaxMessagesStoredBehaviors.ThrowExceptionOnEnqueue)
-                    MaxItemsOnQueueException.Throw();
+                    MaxMessagesOnQueueException.Throw();
 
                 if (options.MaxMessagesStoredBehavior == MaxMessagesStoredBehaviors.DiscardEnqueues)
                     return;

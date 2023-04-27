@@ -41,7 +41,7 @@ internal sealed class AccumulatorQueueBackgroundService<TMessage, TOptions> :
 
         var items = new List<TMessage>(queue.Count);
         while (!cancellationToken.IsCancellationRequested &&
-            (options.MaxItemsOnDequeue is null || options.MaxItemsOnDequeue < items.Count) &&
+            (options.MaxMessagesOnDequeue is null || options.MaxMessagesOnDequeue < items.Count) &&
             queue.TryDequeue(out var item))
         {
             items.Add(item);
@@ -79,15 +79,15 @@ internal sealed class AccumulatorQueueBackgroundService<TMessage, TOptions> :
 
     public void Enqueue(TMessage item)
     {
-        if (options.MaxItemsStored is not null)
+        if (options.MaxMessagesStored is not null)
         {
             var currentItems = queue.Count;
 
-            if (options.MaxItemsStored == currentItems)
+            if (options.MaxMessagesStored == currentItems)
             {
                 if (options.MaxMessagesStoredBehavior is null ||
                     options.MaxMessagesStoredBehavior == MaxMessagesStoredBehaviors.ThrowExceptionOnEnqueue)
-                    MaxItemsOnQueueException.Throw();
+                    MaxMessagesOnQueueException.Throw();
 
                 if (options.MaxMessagesStoredBehavior == MaxMessagesStoredBehaviors.DiscardEnqueues)
                     return;

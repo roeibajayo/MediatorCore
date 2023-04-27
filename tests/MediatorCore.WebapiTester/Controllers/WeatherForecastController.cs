@@ -49,9 +49,9 @@ public class GetWeatherForecast2HandlerOptions : IAccumulatorQueueOptions
 {
     public int MsInterval => 100;
 
-    public int? MaxItemsOnDequeue => default;
+    public int? MaxMessagesOnDequeue => default;
 
-    public int? MaxItemsStored => default;
+    public int? MaxMessagesStored => default;
 
     public MaxMessagesStoredBehaviors? MaxMessagesStoredBehavior => default;
 }
