@@ -59,18 +59,18 @@ internal sealed class DebounceQueueBackgroundService<TMessage, TOptions> :
             {
                 cancellationTokenSource?.Dispose();
                 cancellationTokenSource = null;
-                ProcessItem(lastItem);
+                ProcessMessage(lastItem);
             }
         }
     }
 
-    private async void ProcessItem(TMessage item)
+    private async void ProcessMessage(TMessage item)
     {
         using var scope = serviceScopeFactory.CreateScope();
         var handler = scope.ServiceProvider.GetService<IBaseDebounceQueue<TMessage>>();
-        await ProcessItem(handler!, 0, item);
+        await ProcessMessage(handler!, 0, item);
     }
-    private async Task ProcessItem(IBaseDebounceQueue<TMessage> handler, int retries, TMessage item)
+    private async Task ProcessMessage(IBaseDebounceQueue<TMessage> handler, int retries, TMessage item)
     {
         try
         {
@@ -79,7 +79,7 @@ internal sealed class DebounceQueueBackgroundService<TMessage, TOptions> :
         catch (Exception ex)
         {
             var exceptionHandler = handler!.HandleExceptionAsync(item, ex, retries,
-                () => ProcessItem(handler, retries + 1, item));
+                () => ProcessMessage(handler, retries + 1, item));
 
             if (exceptionHandler is not null)
                 await exceptionHandler;

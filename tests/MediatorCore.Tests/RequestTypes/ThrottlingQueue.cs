@@ -77,15 +77,15 @@ public class SimpleThrottlingQueueMessageHandler :
         this.logger = logger;
     }
 
-    public Task HandleAsync(IEnumerable<SimpleThrottlingQueueMessage> items)
+    public Task HandleAsync(IEnumerable<SimpleThrottlingQueueMessage> messages)
     {
-        foreach (var message in items)
+        foreach (var message in messages)
             logger.LogDebug($"SimpleThrottlingQueueMessage: " + message.Id);
 
         return Task.CompletedTask;
     }
 
-    public Task? HandleExceptionAsync(IEnumerable<SimpleThrottlingQueueMessage> items, Exception exception, int retries, Func<Task> retry)
+    public Task? HandleExceptionAsync(IEnumerable<SimpleThrottlingQueueMessage> messages, Exception exception, int retries, Func<Task> retry)
     {
         throw new NotImplementedException();
     }

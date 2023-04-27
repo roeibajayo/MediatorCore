@@ -3,7 +3,7 @@
 public interface IBaseDebounceQueue<TMessage>
     where TMessage : IDebounceQueueMessage
 {
-    Task HandleAsync(TMessage items);
+    Task HandleAsync(TMessage messages);
 
     Task? HandleExceptionAsync(TMessage item,
         Exception exception,

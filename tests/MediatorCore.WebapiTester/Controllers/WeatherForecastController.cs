@@ -64,13 +64,13 @@ public class GetWeatherForecast2Handler : IAccumulatorQueueHandler<GetWeatherFor
         this.logger = logger;
     }
 
-    public Task HandleAsync(IEnumerable<GetWeatherForecastRequest> items)
+    public Task HandleAsync(IEnumerable<GetWeatherForecastRequest> messages)
     {
         logger.LogInformation("GetWeatherForecastRequest just logged from queue");
         return Task.CompletedTask;
     }
 
-    public Task? HandleExceptionAsync(IEnumerable<GetWeatherForecastRequest> items, Exception exception, int retries, Func<Task> retry)
+    public Task? HandleExceptionAsync(IEnumerable<GetWeatherForecastRequest> messages, Exception exception, int retries, Func<Task> retry)
     {
         return default;
     }

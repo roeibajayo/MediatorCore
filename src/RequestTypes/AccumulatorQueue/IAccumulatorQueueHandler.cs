@@ -3,9 +3,9 @@
 public interface IBaseAccumulatorQueue<TMessage>
     where TMessage : IAccumulatorQueueMessage
 {
-    Task HandleAsync(IEnumerable<TMessage> items);
+    Task HandleAsync(IEnumerable<TMessage> messages);
 
-    Task? HandleExceptionAsync(IEnumerable<TMessage> items,
+    Task? HandleExceptionAsync(IEnumerable<TMessage> messages,
         Exception exception,
         int retries, Func<Task> retry);
 }

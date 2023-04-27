@@ -37,9 +37,9 @@ internal sealed class QueueBackgroundService<TMessage, TOptions> :
     {
         if (options.MaxMessagesStored is not null)
         {
-            var currentItems = queue.Count;
+            var currentMessages = queue.Count;
 
-            if (options.MaxMessagesStored == currentItems)
+            if (options.MaxMessagesStored == currentMessages)
             {
                 if (options.MaxMessagesStoredBehavior is null ||
                     options.MaxMessagesStoredBehavior == MaxMessagesStoredBehaviors.ThrowExceptionOnEnqueue)
@@ -51,10 +51,10 @@ internal sealed class QueueBackgroundService<TMessage, TOptions> :
         }
 
         queue.Enqueue(message);
-        TryProcessItem();
+        TryProcessMessage();
     }
 
-    internal async void TryProcessItem()
+    internal async void TryProcessMessage()
     {
         TMessage item;
 
@@ -71,17 +71,17 @@ internal sealed class QueueBackgroundService<TMessage, TOptions> :
             running = true;
         }
 
-        await ProcessItem(item);
+        await ProcessMessage(item);
     }
 
-    private async Task ProcessItem(TMessage item)
+    private async Task ProcessMessage(TMessage item)
     {
         using var scope = serviceScopeFactory.CreateScope();
         var handler = scope.ServiceProvider.GetService<IBaseQueueHandler<TMessage>>();
-        await ProcessItem(handler!, 0, item);
+        await ProcessMessage(handler!, 0, item);
     }
 
-    private async Task ProcessItem(IBaseQueueHandler<TMessage> handler, int retries, TMessage item)
+    private async Task ProcessMessage(IBaseQueueHandler<TMessage> handler, int retries, TMessage item)
     {
         try
         {
@@ -90,7 +90,7 @@ internal sealed class QueueBackgroundService<TMessage, TOptions> :
         catch (Exception ex)
         {
             var exceptionHandler = handler!.HandleExceptionAsync(item, ex, retries,
-                () => ProcessItem(handler, retries + 1, item));
+                () => ProcessMessage(handler, retries + 1, item));
 
             if (exceptionHandler is not null)
                 await exceptionHandler;
@@ -102,7 +102,7 @@ internal sealed class QueueBackgroundService<TMessage, TOptions> :
                 running = false;
             }
 
-            TryProcessItem();
+            TryProcessMessage();
         }
     }
 

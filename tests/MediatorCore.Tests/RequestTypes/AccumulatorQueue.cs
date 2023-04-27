@@ -65,7 +65,7 @@ public class SimpleAccumulatorQueueMessageHandler :
         return Task.CompletedTask;
     }
 
-    public Task? HandleExceptionAsync(IEnumerable<SimpleAccumulatorQueueMessage> items, Exception exception, int retries, Func<Task> retry)
+    public Task? HandleExceptionAsync(IEnumerable<SimpleAccumulatorQueueMessage> messages, Exception exception, int retries, Func<Task> retry)
     {
         throw new NotImplementedException();
     }

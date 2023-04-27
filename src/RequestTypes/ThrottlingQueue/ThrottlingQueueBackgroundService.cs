@@ -38,12 +38,12 @@ internal sealed class ThrottlingQueueBackgroundService<TMessage, TOptions> :
     {
         while (!cancellationToken.IsCancellationRequested && running)
         {
-            var (success, items) = await queue.TryDequeueAsync(cancellationToken);
+            var (success, messages) = await queue.TryDequeueAsync(cancellationToken);
 
             if (!success)
                 continue;
 
-            ProcessItems(items);
+            ProcessMessages(messages);
         }
     }
 
@@ -54,23 +54,23 @@ internal sealed class ThrottlingQueueBackgroundService<TMessage, TOptions> :
         return Task.CompletedTask;
     }
 
-    private async void ProcessItems(IEnumerable<TMessage> items)
+    private async void ProcessMessages(IEnumerable<TMessage> messages)
     {
         using var scope = serviceScopeFactory.CreateScope();
         var handler = scope.ServiceProvider.GetService<IBaseThrottlingQueueHandler<TMessage>>();
-        await ProcessItem(handler!, 0, items);
+        await ProcessMessage(handler!, 0, messages);
     }
 
-    private async Task ProcessItem(IBaseThrottlingQueueHandler<TMessage> handler, int retries, IEnumerable<TMessage> items)
+    private async Task ProcessMessage(IBaseThrottlingQueueHandler<TMessage> handler, int retries, IEnumerable<TMessage> messages)
     {
         try
         {
-            await handler!.HandleAsync(items);
+            await handler!.HandleAsync(messages);
         }
         catch (Exception ex)
         {
-            var exceptionHandler = handler!.HandleExceptionAsync(items, ex, retries,
-                () => ProcessItem(handler, retries + 1, items));
+            var exceptionHandler = handler!.HandleExceptionAsync(messages, ex, retries,
+                () => ProcessMessage(handler, retries + 1, messages));
 
             if (exceptionHandler is not null)
                 await exceptionHandler;
@@ -81,9 +81,9 @@ internal sealed class ThrottlingQueueBackgroundService<TMessage, TOptions> :
     {
         if (options.MaxMessagesStored is not null)
         {
-            var currentItems = queue.Count;
+            var currentMessages = queue.Count;
 
-            if (options.MaxMessagesStored == currentItems)
+            if (options.MaxMessagesStored == currentMessages)
             {
                 if (options.MaxMessagesStoredBehavior is null ||
                     options.MaxMessagesStoredBehavior == MaxMessagesStoredBehaviors.ThrowExceptionOnEnqueue)

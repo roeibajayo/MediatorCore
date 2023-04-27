@@ -39,38 +39,38 @@ internal sealed class AccumulatorQueueBackgroundService<TMessage, TOptions> :
         if (queue.IsEmpty)
             return Task.CompletedTask;
 
-        var items = new List<TMessage>(queue.Count);
+        var messages = new List<TMessage>(queue.Count);
         while (!cancellationToken.IsCancellationRequested &&
-            (options.MaxMessagesOnDequeue is null || options.MaxMessagesOnDequeue < items.Count) &&
+            (options.MaxMessagesOnDequeue is null || options.MaxMessagesOnDequeue < messages.Count) &&
             queue.TryDequeue(out var item))
         {
-            items.Add(item);
+            messages.Add(item);
         }
 
-        if (items.Count == 0)
+        if (messages.Count == 0)
             return Task.CompletedTask;
 
-        ProcessItems(items);
+        ProcessMessages(messages);
         return Task.CompletedTask;
     }
 
-    private async void ProcessItems(IEnumerable<TMessage> items)
+    private async void ProcessMessages(IEnumerable<TMessage> messages)
     {
         using var scope = serviceScopeFactory.CreateScope();
         var handler = scope.ServiceProvider.GetService<IBaseAccumulatorQueue<TMessage>>();
-        await ProcessItem(handler!, 0, items);
+        await ProcessMessage(handler!, 0, messages);
     }
 
-    private async Task ProcessItem(IBaseAccumulatorQueue<TMessage> handler, int retries, IEnumerable<TMessage> items)
+    private async Task ProcessMessage(IBaseAccumulatorQueue<TMessage> handler, int retries, IEnumerable<TMessage> messages)
     {
         try
         {
-            await handler!.HandleAsync(items);
+            await handler!.HandleAsync(messages);
         }
         catch (Exception ex)
         {
-            var exceptionHandler = handler!.HandleExceptionAsync(items, ex, retries,
-                () => ProcessItem(handler, retries + 1, items));
+            var exceptionHandler = handler!.HandleExceptionAsync(messages, ex, retries,
+                () => ProcessMessage(handler, retries + 1, messages));
 
             if (exceptionHandler is not null)
                 await exceptionHandler;
@@ -81,9 +81,9 @@ internal sealed class AccumulatorQueueBackgroundService<TMessage, TOptions> :
     {
         if (options.MaxMessagesStored is not null)
         {
-            var currentItems = queue.Count;
+            var currentMessages = queue.Count;
 
-            if (options.MaxMessagesStored == currentItems)
+            if (options.MaxMessagesStored == currentMessages)
             {
                 if (options.MaxMessagesStoredBehavior is null ||
                     options.MaxMessagesStoredBehavior == MaxMessagesStoredBehaviors.ThrowExceptionOnEnqueue)

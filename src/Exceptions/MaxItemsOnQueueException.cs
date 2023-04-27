@@ -2,7 +2,7 @@
 
 public class MaxMessagesOnQueueException : Exception
 {
-    internal MaxMessagesOnQueueException() : base("Max items on queue reached.") { }
+    internal MaxMessagesOnQueueException() : base("Max messages on queue reached.") { }
 
     internal static void Throw()
     {
