@@ -7,11 +7,14 @@ High-performance yet easy to use mediator pattern and in-process message bus imp
 
 ## 🚀 Features
 ✔ Fast and low memory usage. 🔥
+
 ✔ Meditor pattern implementation.
+
 ✔ Use many queues types as handlers, so you don't need to use external message bus libraries.
+
 ✔ Developers friendly ❤️ Easy to use.
 
-Supports these messages:
+### Supported handlers:
 - Request without response `IRequestHandler<IRequestMessage>`
 - Request with response `IResponseHandler<IResponseMessage, TResponse>`
 - Notification (parallel execution) `INotificationHandler<INotificationMessage>`
@@ -21,6 +24,22 @@ Supports these messages:
 - Debounce queue `IDebounceQueueHandler<IDebounceQueueMessage, IDebounceQueueOptions>`
 - Throttling queue `IThrottlingQueueHandler<IThrottlingQueueMessage, IThrottlingQueueOptions>`
 - Accumulator queue `IAccumulatorQueueHandler<IAccumulatorQueueMessage, IAccumulatorQueueOptions>`
+
+## Benchmarks MediatorCore (1.3.0) vs MediatR (12.0.1):
+|                                        Method |       Mean |       Error |    StdDev | Allocated |
+|---------------------------------------------- |-----------:|------------:|----------:|----------:|
+|                         Response_MediatorCore |   151.4 ns |    68.35 ns |   3.75 ns |     336 B |
+|                              Response_MediatR |   212.0 ns |   926.96 ns |  50.81 ns |     408 B |
+|                                                                                                  |
+|      ParallelNotification_Simple_MediatorCore | 1,680.1 ns | 2,093.40 ns | 114.75 ns |     872 B |
+|           ParallelNotification_Simple_MediatR | 2,497.9 ns | 2,837.47 ns | 155.53 ns |     872 B |
+|                                                                                                  |
+| ParallelNotification_LongRunning_MediatorCore | 2,884.0 ns | 1,366.19 ns |  74.89 ns |    1136 B |
+|      ParallelNotification_LongRunning_MediatR | 3,202.3 ns |   921.75 ns |  50.52 ns |    1160 B |
+|                                                                                                  |
+|                                 InsertToQueue |   119.7 ns |    99.76 ns |   5.47 ns |      48 B |
+|                                                                                                  |
+|                                 InsertToStack |   281.0 ns | 1,199.47 ns |  65.75 ns |      64 B |
 
 ## Install & Registering:
 
@@ -284,23 +303,6 @@ public class Example
     }
 }
 ```
-
-
-## Benchmarks MediatorCore (1.3.0) vs MediatR (12.0.1):
-|                                        Method |       Mean |       Error |    StdDev | Allocated |
-|---------------------------------------------- |-----------:|------------:|----------:|----------:|
-|                         Response_MediatorCore |   151.4 ns |    68.35 ns |   3.75 ns |     336 B |
-|                              Response_MediatR |   212.0 ns |   926.96 ns |  50.81 ns |     408 B |
-|                                                                                                  |
-|      ParallelNotification_Simple_MediatorCore | 1,680.1 ns | 2,093.40 ns | 114.75 ns |     872 B |
-|           ParallelNotification_Simple_MediatR | 2,497.9 ns | 2,837.47 ns | 155.53 ns |     872 B |
-|                                                                                                  |
-| ParallelNotification_LongRunning_MediatorCore | 2,884.0 ns | 1,366.19 ns |  74.89 ns |    1136 B |
-|      ParallelNotification_LongRunning_MediatR | 3,202.3 ns |   921.75 ns |  50.52 ns |    1160 B |
-|                                                                                                  |
-|                                 InsertToQueue |   119.7 ns |    99.76 ns |   5.47 ns |      48 B |
-|                                                                                                  |
-|                                 InsertToStack |   281.0 ns | 1,199.47 ns |  65.75 ns |      64 B |
 
 ## Roadmap:
 - More examples of use (check out the Unitests for now)
