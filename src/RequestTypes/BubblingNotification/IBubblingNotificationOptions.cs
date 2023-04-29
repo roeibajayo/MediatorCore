@@ -1,4 +1,4 @@
-﻿namespace MediatorCore.RequestTypes.Notification;
+﻿namespace MediatorCore;
 
 public interface IBubblingNotificationOptions
 {

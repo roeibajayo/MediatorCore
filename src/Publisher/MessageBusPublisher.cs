@@ -60,9 +60,9 @@ internal partial class MessageBusPublisher : IPublisher
             found = true;
         }
 
-        if (message is IParallelNotificationMessage)
+        if (message is INotificationMessage)
         {
-            handler.HandleParallelNotificationMessage<TMessage>(message, cancellationToken);
+            handler.HandleNotificationMessage<TMessage>(message, cancellationToken);
             found = true;
         }
 
@@ -119,9 +119,9 @@ internal partial class MessageBusPublisher : IPublisher
             found = true;
         }
 
-        if (message is IParallelNotificationMessage)
+        if (message is INotificationMessage)
         {
-            await handler.HandleParallelNotificationMessage<TMessage>(message, cancellationToken);
+            await handler.HandleNotificationMessage<TMessage>(message, cancellationToken);
             found = true;
         }
 

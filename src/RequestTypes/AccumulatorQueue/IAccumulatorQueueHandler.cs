@@ -1,18 +1,24 @@
-﻿namespace MediatorCore.RequestTypes.AccumulatorQueue;
+﻿using MediatorCore.RequestTypes.AccumulatorQueue;
 
-public interface IBaseAccumulatorQueue<TMessage>
-    where TMessage : IAccumulatorQueueMessage
+namespace MediatorCore.RequestTypes.AccumulatorQueue
 {
-    Task HandleAsync(IEnumerable<TMessage> messages);
+    public interface IBaseAccumulatorQueue<TMessage>
+        where TMessage : IAccumulatorQueueMessage
+    {
+        Task HandleAsync(IEnumerable<TMessage> messages);
 
-    Task? HandleExceptionAsync(IEnumerable<TMessage> messages,
-        Exception exception,
-        int retries, Func<Task> retry);
+        Task? HandleExceptionAsync(IEnumerable<TMessage> messages,
+            Exception exception,
+            int retries, Func<Task> retry);
+    }
 }
 
-public interface IAccumulatorQueueHandler<TMessage, TOptions> :
-    IBaseAccumulatorQueue<TMessage>
-    where TMessage : IAccumulatorQueueMessage
-    where TOptions : class, IAccumulatorQueueOptions, new()
+namespace MediatorCore
 {
+    public interface IAccumulatorQueueHandler<TMessage, TOptions> :
+        IBaseAccumulatorQueue<TMessage>
+        where TMessage : IAccumulatorQueueMessage
+        where TOptions : class, IAccumulatorQueueOptions, new()
+    {
+    }
 }

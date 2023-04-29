@@ -1,4 +1,4 @@
-﻿namespace MediatorCore.RequestTypes.ThrottlingQueue;
+﻿namespace MediatorCore;
 
 /// <summary>
 /// Represents the throttling window info.

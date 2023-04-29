@@ -1,18 +1,24 @@
-﻿namespace MediatorCore.RequestTypes.ThrottlingQueue;
+﻿using MediatorCore.RequestTypes.ThrottlingQueue;
 
-public interface IBaseThrottlingQueueHandler<TMessage>
-    where TMessage : IThrottlingQueueMessage
+namespace MediatorCore.RequestTypes.ThrottlingQueue
 {
-    Task HandleAsync(IEnumerable<TMessage> messages);
+    public interface IBaseThrottlingQueueHandler<TMessage>
+        where TMessage : IThrottlingQueueMessage
+    {
+        Task HandleAsync(IEnumerable<TMessage> messages);
 
-    Task? HandleExceptionAsync(IEnumerable<TMessage> messages,
-        Exception exception,
-        int retries, Func<Task> retry);
+        Task? HandleExceptionAsync(IEnumerable<TMessage> messages,
+            Exception exception,
+            int retries, Func<Task> retry);
+    }
 }
 
-public interface IThrottlingQueueHandler<TMessage, TOptions> :
-    IBaseThrottlingQueueHandler<TMessage>
-    where TMessage : IThrottlingQueueMessage
-    where TOptions : class, IThrottlingQueueOptions, new()
+namespace MediatorCore
 {
+    public interface IThrottlingQueueHandler<TMessage, TOptions> :
+        IBaseThrottlingQueueHandler<TMessage>
+        where TMessage : IThrottlingQueueMessage
+        where TOptions : class, IThrottlingQueueOptions, new()
+    {
+    }
 }

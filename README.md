@@ -1,23 +1,26 @@
-# MediatorCore
+﻿# MediatorCore
 
 [![NuGet](https://img.shields.io/nuget/dt/MediatorCore.svg)](https://www.nuget.org/packages/MediatorCore) 
 [![NuGet](https://img.shields.io/nuget/vpre/MediatorCore.svg)](https://www.nuget.org/packages/MediatorCore)
 
 High-performance yet easy to use mediator pattern and in-process message bus implementation in .NET.
 
-
-NEW! we now allowing retries!
+## 🚀 Features
+✔ Fast and low memory usage. 🔥
+✔ Meditor pattern implementation.
+✔ Use many queues types as handlers, so you don't need to use external message bus libraries.
+✔ Developers friendly ❤️ Easy to use.
 
 Supports these messages:
-- Request without response `IRequestHandler<TMessage>`
-- Request with response `IResponseHandler<TRequest, TResponse>`
-- Queue `IQueueHandler<TMessage, TQueueHandlerOptions>`
-- Stack `IStackHandler<TMessage, TStackHandlerOptions>`
-- Debounce queue `IDebounceQueueMessage<TMessage, TDebounceQueueOptions>`
-- Accumulator queue `IAccumulatorQueueHandler<TMessage, TAccumulatorQueueOptions>`
-- Throttling queue `IThrottlingQueueHandler<TMessage, TThrottlingQueueOptions>`
-- Bubbling notification `IBubblingNotificationHandler<TMessage, TBubblingNotificationOptions>`
-- Parallel notification `IParallelNotificationHandler<TMessage>`
+- Request without response `IRequestHandler<IRequestMessage>`
+- Request with response `IResponseHandler<IResponseMessage, TResponse>`
+- Notification (parallel execution) `INotificationHandler<INotificationMessage>`
+- Bubbling notification `IBubblingNotificationHandler<IBubblingNotificationMessage, IBubblingNotificationOptions>`
+- Queue `IQueueHandler<IQueueHandlerMessage, IQueueHandlerOptions>`
+- Stack `IStackHandler<IStackHandlerMessage, IStackHandlerOptions>`
+- Debounce queue `IDebounceQueueHandler<IDebounceQueueMessage, IDebounceQueueOptions>`
+- Throttling queue `IThrottlingQueueHandler<IThrottlingQueueMessage, IThrottlingQueueOptions>`
+- Accumulator queue `IAccumulatorQueueHandler<IAccumulatorQueueMessage, IAccumulatorQueueOptions>`
 
 ## Install & Registering:
 
@@ -32,7 +35,10 @@ Or via the .NET Core command line interface:
 then register the required services easly:
 
 ```csharp
-services.AddMediatorCore();
+services.AddMediatorCore(); // register all handlers from the calling assembly
+// or:
+// services.AddMediatorCore<TMarker>(); -> can used multiple times
+// services.AddMediatorCore(new Assembly { .. });
 ```
 
 ## Example of creating a Request/Response:
@@ -131,7 +137,7 @@ public class Example
 }
 ```
 
-## Example of creating a Bubbling notification
+## Example of creating a Bubbling notification:
 
 ```csharp
 // the message:
@@ -208,11 +214,11 @@ public class Example
 }
 ```
 
-## Example of creating a Accumulator queue
+## Example of creating a Accumulator queue:
 
 ```csharp
 // the options of the queue:
-public class LogsAccumulatorQueueOptions :
+public class LogsHandlerOptions :
     IAccumulatorQueueOptions
 {
     public int MsInterval => 60 * 1000;
@@ -225,12 +231,12 @@ public class LogsAccumulatorQueueOptions :
 public record LogMessage(DateTimeOffest Date, string Message) : IAccumulatorQueueMessage;
 
 // the handler:
-public class LogsAccumulatorQueueMessageHandler :
-    IAccumulatorQueueHandler<LogMessage, LogsAccumulatorQueueOptions>
+public class LogsHandler :
+    IAccumulatorQueueHandler<LogMessage, LogsHandlerOptions>
 {
     public readonly ILogger logger;
 
-    public LogsAccumulatorQueueMessageHandler(ILogger logger)
+    public LogsHandler(ILogger logger)
     {
         this.logger = logger;
     }
@@ -297,9 +303,9 @@ public class Example
 |                                 InsertToStack |   281.0 ns | 1,199.47 ns |  65.75 ns |      64 B |
 
 ## Roadmap:
+- More examples of use (check out the Unitests for now)
 - More handlers types
 - More unitests
-- More examples of use (check out the Unitests for now)
 
 ## Contribute
 Please feel free to PR. I highly appreciate any contribution!

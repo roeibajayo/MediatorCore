@@ -91,9 +91,6 @@ internal sealed class AccumulatorQueueBackgroundService<TMessage, TOptions> :
 
                 if (options.MaxMessagesStoredBehavior == MaxMessagesStoredBehaviors.DiscardEnqueues)
                     return;
-
-                if (options.MaxMessagesStoredBehavior == MaxMessagesStoredBehaviors.ForceProcess)
-                    OnExecuteAsync(CancellationToken.None).Start();
             }
         }
 

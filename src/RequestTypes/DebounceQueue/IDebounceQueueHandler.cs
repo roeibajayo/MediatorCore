@@ -1,18 +1,24 @@
-﻿namespace MediatorCore.RequestTypes.DebounceQueue;
+﻿using MediatorCore.RequestTypes.DebounceQueue;
 
-public interface IBaseDebounceQueue<TMessage>
-    where TMessage : IDebounceQueueMessage
+namespace MediatorCore.RequestTypes.DebounceQueue
 {
-    Task HandleAsync(TMessage messages);
+    public interface IBaseDebounceQueue<TMessage>
+        where TMessage : IDebounceQueueMessage
+    {
+        Task HandleAsync(TMessage messages);
 
-    Task? HandleExceptionAsync(TMessage item,
-        Exception exception,
-        int retries, Func<Task> retry);
+        Task? HandleExceptionAsync(TMessage item,
+            Exception exception,
+            int retries, Func<Task> retry);
+    }
 }
 
-public interface IDebounceQueueHandler<TMessage, TOptions> :
-    IBaseDebounceQueue<TMessage>
-    where TMessage : IDebounceQueueMessage
-    where TOptions : class, IDebounceQueueOptions, new()
+namespace MediatorCore
 {
+    public interface IDebounceQueueHandler<TMessage, TOptions> :
+        IBaseDebounceQueue<TMessage>
+        where TMessage : IDebounceQueueMessage
+        where TOptions : class, IDebounceQueueOptions, new()
+    {
+    }
 }

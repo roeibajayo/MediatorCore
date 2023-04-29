@@ -1,3 +1,3 @@
-﻿namespace MediatorCore.RequestTypes.ThrottlingQueue;
+﻿namespace MediatorCore;
 
 public interface IThrottlingQueueMessage { }

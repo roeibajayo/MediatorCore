@@ -1,18 +1,24 @@
-﻿namespace MediatorCore.RequestTypes.Stack;
+﻿using MediatorCore.RequestTypes.Stack;
 
-public interface IBaseStackHandler<TMessage>
-    where TMessage : IStackMessage
+namespace MediatorCore.RequestTypes.Stack
 {
-    Task HandleAsync(TMessage message);
+    public interface IBaseStackHandler<TMessage>
+        where TMessage : IStackMessage
+    {
+        Task HandleAsync(TMessage message);
 
-    Task? HandleExceptionAsync(TMessage message,
-        Exception exception,
-        int retries, Func<Task> retry);
+        Task? HandleExceptionAsync(TMessage message,
+            Exception exception,
+            int retries, Func<Task> retry);
+    }
 }
 
-public interface IStackHandler<TMessage, TOptions> :
-    IBaseStackHandler<TMessage>
-    where TMessage : IStackMessage
-    where TOptions : IStackOptions, new()
+namespace MediatorCore
 {
+    public interface IStackHandler<TMessage, TOptions> :
+        IBaseStackHandler<TMessage>
+        where TMessage : IStackMessage
+        where TOptions : IStackOptions, new()
+    {
+    }
 }

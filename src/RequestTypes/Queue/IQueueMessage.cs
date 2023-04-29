@@ -1,3 +1,3 @@
-﻿namespace MediatorCore.RequestTypes.Queue;
+﻿namespace MediatorCore;
 
 public interface IQueueMessage { }

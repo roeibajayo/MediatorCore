@@ -1,3 +1,3 @@
-﻿namespace MediatorCore.RequestTypes.Stack;
+﻿namespace MediatorCore;
 
 public interface IStackMessage { }

@@ -1,4 +1,4 @@
-﻿namespace MediatorCore.RequestTypes.Request;
+﻿namespace MediatorCore;
 
 public interface IRequestHandler<TMessage>
     where TMessage : IRequestMessage

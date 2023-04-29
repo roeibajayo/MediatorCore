@@ -1,4 +1,4 @@
-﻿namespace MediatorCore.RequestTypes.Response;
+﻿namespace MediatorCore;
 
 public interface IResponseHandler<TMessage, TResponse>
     where TMessage : notnull, IResponseMessage<TResponse>

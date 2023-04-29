@@ -1,3 +1,3 @@
-﻿namespace MediatorCore.RequestTypes.DebounceQueue;
+﻿namespace MediatorCore;
 
 public interface IDebounceQueueMessage { }

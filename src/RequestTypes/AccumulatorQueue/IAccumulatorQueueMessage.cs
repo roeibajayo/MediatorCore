@@ -1,3 +1,3 @@
-﻿namespace MediatorCore.RequestTypes.AccumulatorQueue;
+﻿namespace MediatorCore;
 
 public interface IAccumulatorQueueMessage { }

@@ -16,8 +16,8 @@ public class Benchmark
     private CancellationTokenSource? cancellationToken;
 
     private readonly SimpleResponseMessage request = new(1);
-    private readonly SimpleParallelNotificationMessage simpleParallelNotification = new(1);
-    private readonly LongRunningParallelNotificationMessage longRunningParallelNotification = new(1);
+    private readonly SimpleNotificationMessage simpleNotification = new(1);
+    private readonly LongRunningNotificationMessage longRunningNotification = new(1);
     private readonly QueueMessage queue = new(1);
     private readonly StackMessage stack = new(1);
 
@@ -63,31 +63,31 @@ public class Benchmark
     }
 
     [Benchmark]
-    public void ParallelNotification_Simple_MediatorCore()
+    public void Notification_Simple_MediatorCore()
     {
         mediatorCorePublisher!
-            .Publish(simpleParallelNotification);
+            .Publish(simpleNotification);
     }
 
     [Benchmark]
-    public void ParallelNotification_Simple_MediatR()
+    public void Notification_Simple_MediatR()
     {
         mediatrPublisher!
-            .Publish(simpleParallelNotification);
+            .Publish(simpleNotification);
     }
 
     [Benchmark]
-    public void ParallelNotification_LongRunning_MediatorCore()
+    public void Notification_LongRunning_MediatorCore()
     {
         mediatorCorePublisher!
-            .Publish(longRunningParallelNotification);
+            .Publish(longRunningNotification);
     }
 
     [Benchmark]
-    public void ParallelNotification_LongRunning_MediatR()
+    public void Notification_LongRunning_MediatR()
     {
         mediatrPublisher!
-            .Publish(longRunningParallelNotification);
+            .Publish(longRunningNotification);
     }
 
     [Benchmark]

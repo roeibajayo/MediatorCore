@@ -1,6 +1,4 @@
-﻿using MediatorCore.RequestTypes.ThrottlingQueue;
-
-namespace MediatorCore.RequestTypes.Stack;
+﻿namespace MediatorCore;
 
 public interface IStackOptions
 {

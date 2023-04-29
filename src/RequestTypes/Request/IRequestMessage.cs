@@ -1,3 +1,3 @@
-﻿namespace MediatorCore.RequestTypes.Request;
+﻿namespace MediatorCore;
 
 public interface IRequestMessage { }

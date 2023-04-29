@@ -1,6 +1,7 @@
 ﻿using MediatorCore;
 using MediatorCore.Publisher;
 using MediatorCore.RequestTypes.AccumulatorQueue;
+using MediatorCore.RequestTypes.BubblingNotification;
 using MediatorCore.RequestTypes.DebounceQueue;
 using MediatorCore.RequestTypes.Notification;
 using MediatorCore.RequestTypes.Queue;
@@ -71,8 +72,9 @@ public static class DependencyInjection
         }
 
         services.AddAccumulatorQueueHandlers(assembliesToAdd);
+        services.AddBubblingNotificationHandlers(assembliesToAdd);
         services.AddDebounceQueueHandlers(assembliesToAdd);
-        services.AddNotificationsHandlers(assembliesToAdd);
+        services.AddNotificationHandlers(assembliesToAdd);
         services.AddQueueHandlers(assembliesToAdd);
         services.AddRequestHandlers(assembliesToAdd);
         services.AddResponseHandlers(assembliesToAdd);

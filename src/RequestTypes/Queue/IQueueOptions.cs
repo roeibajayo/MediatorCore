@@ -1,6 +1,4 @@
-﻿using MediatorCore.RequestTypes.ThrottlingQueue;
-
-namespace MediatorCore.RequestTypes.Queue;
+﻿namespace MediatorCore;
 
 public interface IQueueOptions
 {
