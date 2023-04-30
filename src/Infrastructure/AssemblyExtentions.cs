@@ -6,15 +6,12 @@ internal static class AssemblyExtentions
 {
     internal static Assembly[] GetAllReferencedAssemblies(this Assembly assembly)
     {
-        var firstReferences = assembly.GetReferencedAssemblies()
-                .Select(Assembly.Load);
-
-        var result = new List<Assembly>(firstReferences);
-
-        foreach (var reference in firstReferences)
-            result.AddRange(reference.GetAllReferencedAssemblies());
-
-        return result.Distinct().ToArray();
+        return assembly
+            .GetReferencedAssemblies()
+            .Select(Assembly.Load)
+            .SelectMany(a => a.GetAllReferencedAssemblies())
+            .Distinct()
+            .ToArray();
     }
     internal static IEnumerable<Type> GetAllInheritsFromMarker(Type type, Type marker,
             bool ignoreAbstract = true,
