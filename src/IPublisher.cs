@@ -1,5 +1,4 @@
-﻿using MediatorCore.RequestTypes.Response;
-using MediatorCore.Exceptions;
+﻿using MediatorCore.Exceptions;
 
 namespace MediatorCore
 {
@@ -21,8 +20,22 @@ namespace MediatorCore
         /// </summary>
         /// <param name="message">Request message.</param>
         /// <param name="cancellationToken">Optional cancellation token.</param>
+        /// <returns>returns True if handlers exists, otherwise False</returns>
+        bool TryPublish<TMessage>(TMessage message, CancellationToken cancellationToken = default);
+
+        /// <summary>
+        /// Asynchronously send a message to multiple handlers
+        /// </summary>
+        /// <param name="message">Request message.</param>
+        /// <param name="cancellationToken">Optional cancellation token.</param>
         /// <exception cref="NoRegisteredHandlerException" />
-        void Publish<TMessage>(TMessage message, CancellationToken cancellationToken = default);
+        void Publish<TMessage>(TMessage message, CancellationToken cancellationToken = default)
+        {
+            if (!TryPublish(message, cancellationToken))
+            {
+                NoRegisteredHandlerException.Throw<TMessage>();
+            }
+        }
 
         /// <summary>
         /// Asynchronously send a message to multiple handlers and wait for all handlers to complete.

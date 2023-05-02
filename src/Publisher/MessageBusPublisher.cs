@@ -1,12 +1,4 @@
 ﻿using MediatorCore.Exceptions;
-using MediatorCore.RequestTypes.AccumulatorQueue;
-using MediatorCore.RequestTypes.DebounceQueue;
-using MediatorCore.RequestTypes.Notification;
-using MediatorCore.RequestTypes.Queue;
-using MediatorCore.RequestTypes.Request;
-using MediatorCore.RequestTypes.Response;
-using MediatorCore.RequestTypes.Stack;
-using MediatorCore.RequestTypes.ThrottlingQueue;
 
 namespace MediatorCore.Publisher;
 
@@ -19,7 +11,7 @@ internal partial class MessageBusPublisher : IPublisher
         this.serviceProvider = serviceProvider;
     }
 
-    public void Publish<TMessage>(TMessage message, CancellationToken cancellationToken = default)
+    public bool TryPublish<TMessage>(TMessage message, CancellationToken cancellationToken = default)
     {
         dynamic handler = this;
         var found = false;
@@ -72,10 +64,7 @@ internal partial class MessageBusPublisher : IPublisher
             found = true;
         }
 
-        if (!found)
-        {
-            NoRegisteredHandlerException.Throw<TMessage>();
-        }
+        return found;
     }
 
     public async Task PublishAsync<TMessage>(TMessage message, CancellationToken cancellationToken = default)
