@@ -1,5 +1,4 @@
 ﻿using MediatorCore.Exceptions;
-using MediatorCore.RequestTypes.ThrottlingQueue;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using System.Collections.Concurrent;

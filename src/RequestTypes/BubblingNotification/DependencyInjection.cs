@@ -1,5 +1,4 @@
 ﻿using MediatorCore.Infrastructure;
-using MediatorCore.RequestTypes.Notification;
 using Microsoft.Extensions.DependencyInjection;
 using System.Reflection;
 

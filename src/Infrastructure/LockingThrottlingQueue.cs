@@ -1,5 +1,4 @@
 ﻿using System.Collections.Concurrent;
-using MediatorCore.RequestTypes.ThrottlingQueue;
 
 namespace MediatorCore.Infrastructure;
 
@@ -235,7 +234,7 @@ internal sealed class LockingThrottlingQueue<T> : IDisposable
         }
     }
 
-    internal int Count => 
+    internal int Count =>
         queue.Count;
 
     public void Dispose()

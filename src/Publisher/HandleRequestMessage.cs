@@ -1,5 +1,4 @@
-﻿using MediatorCore.RequestTypes.Request;
-using Microsoft.Extensions.DependencyInjection;
+﻿using Microsoft.Extensions.DependencyInjection;
 
 namespace MediatorCore.Publisher;
 
