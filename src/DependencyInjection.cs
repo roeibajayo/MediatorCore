@@ -15,7 +15,7 @@ namespace Microsoft.Extensions.DependencyInjection;
 
 public static class DependencyInjection
 {
-    private static readonly HashSet<string> registredAssemblies = new();
+    private static readonly Dictionary<IServiceCollection, HashSet<string>> registredAssemblies = new();
 
     /// <summary>
     /// Add MediatorCore services from the calling assembly.
@@ -56,9 +56,11 @@ public static class DependencyInjection
         if (assemblies is null)
             throw new ArgumentNullException(nameof(assemblies));
 
+        registredAssemblies.TryAdd(services, new HashSet<string>());
+
         var assembliesToAdd = assemblies
             .Distinct()
-            .Where(assembly => assemblies is not null && !registredAssemblies.Contains(assembly.FullName!))
+            .Where(assembly => assemblies is not null && !registredAssemblies[services].Contains(assembly.FullName!))
             .ToArray();
 
         if (registredAssemblies.Count == 0)
@@ -82,7 +84,7 @@ public static class DependencyInjection
         services.AddThrottlingQueueHandlers(assembliesToAdd);
 
         foreach (var assembly in assembliesToAdd)
-            registredAssemblies.Add(assembly.FullName!);
+            registredAssemblies[services].Add(assembly.FullName!);
 
         return services;
     }
