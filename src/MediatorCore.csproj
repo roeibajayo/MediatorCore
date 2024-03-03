@@ -6,8 +6,8 @@
     <Nullable>enable</Nullable>
     <SignAssembly>False</SignAssembly>
     <LangVersion>10</LangVersion>
-    <Version>1.5.0</Version>
-    <Authors>roeibajayo@gmail.com</Authors>
+    <Version>1.5.1</Version>
+    <Authors>roeibajayo</Authors>
     <PackageId>MediatorCore</PackageId>
     <Company>RoeiBajayo</Company>
     <Title>MediatorCore</Title>

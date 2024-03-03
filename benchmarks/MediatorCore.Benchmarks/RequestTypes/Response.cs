@@ -1,5 +1,4 @@
-﻿using MediatorCore.RequestTypes.Response;
-using MediatR;
+﻿using MediatR;
 
 namespace MediatorCore.Benchmarks.RequestTypes;
 
@@ -11,13 +10,13 @@ public class SimpleResponseMessageHandler :
     IRequestHandler<SimpleResponseMessage, SimpleResponse>,
     IResponseHandler<SimpleResponseMessage, SimpleResponse>
 {
-    public async Task<SimpleResponse> Handle(SimpleResponseMessage request, CancellationToken cancellationToken)
+    public Task<SimpleResponse> Handle(SimpleResponseMessage request, CancellationToken cancellationToken)
     {
-        return new SimpleResponse(true);
+        return Task.FromResult(new SimpleResponse(true));
     }
 
-    public async Task<SimpleResponse> HandleAsync(SimpleResponseMessage message, CancellationToken cancellationToken)
+    public Task<SimpleResponse> HandleAsync(SimpleResponseMessage message, CancellationToken cancellationToken)
     {
-        return new SimpleResponse(true);
+        return Task.FromResult(new SimpleResponse(true));
     }
 }
