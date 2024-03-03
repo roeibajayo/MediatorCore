@@ -56,13 +56,6 @@ public static class DependencyInjection
         if (assemblies is null)
             throw new ArgumentNullException(nameof(assemblies));
 
-        registredAssemblies.TryAdd(services, new HashSet<string>());
-
-        var assembliesToAdd = assemblies
-            .Distinct()
-            .Where(assembly => assemblies is not null && !registredAssemblies[services].Contains(assembly.FullName!))
-            .ToArray();
-
         if (registredAssemblies.Count == 0)
         {
             MediatorCoreOptions.instance = new MediatorCoreOptions();
@@ -72,6 +65,13 @@ public static class DependencyInjection
                 typeof(MessageBusPublisher),
                 MediatorCoreOptions.instance.HandlersLifetime));
         }
+
+        registredAssemblies.TryAdd(services, new HashSet<string>());
+
+        var assembliesToAdd = assemblies
+            .Distinct()
+            .Where(assembly => assemblies is not null && !registredAssemblies[services].Contains(assembly.FullName!))
+            .ToArray();
 
         services.AddAccumulatorQueueHandlers(assembliesToAdd);
         services.AddBubblingNotificationHandlers(assembliesToAdd);
