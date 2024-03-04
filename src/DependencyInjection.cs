@@ -9,6 +9,7 @@ using MediatorCore.RequestTypes.Request;
 using MediatorCore.RequestTypes.Response;
 using MediatorCore.RequestTypes.Stack;
 using MediatorCore.RequestTypes.ThrottlingQueue;
+using Microsoft.Extensions.DependencyInjection.Extensions;
 using System.Reflection;
 
 namespace Microsoft.Extensions.DependencyInjection;
@@ -54,8 +55,7 @@ public static class DependencyInjection
         if (assemblies is null)
             throw new ArgumentNullException(nameof(assemblies));
 
-        if (services.Contains(ServiceDescriptor.Singleton(typeof(IPublisher), typeof(MessageBusPublisher))))
-            throw new InvalidOperationException("MediatorCore has already been added to the service collection.");
+        TryRemoveMediatorCore(services);
 
         MediatorCoreOptions.instance = new MediatorCoreOptions();
         options?.Invoke(MediatorCoreOptions.instance);
@@ -78,5 +78,30 @@ public static class DependencyInjection
         services.AddThrottlingQueueHandlers(assembliesToAdd);
 
         return services;
+    }
+
+    private static void TryRemoveMediatorCore(IServiceCollection services)
+    {
+        var descriptor = services.FirstOrDefault(d => d.ServiceType == typeof(IPublisher));
+        if (descriptor is null)
+            return;
+
+        services.Remove(descriptor);
+
+        services.RemoveAll(typeof(IAccumulatorQueueBackgroundService<>));
+        services.RemoveAll(typeof(IDebounceQueueBackgroundService<>));
+        services.RemoveAll(typeof(IQueueBackgroundService<>));
+        services.RemoveAll(typeof(IStackBackgroundService<>));
+        services.RemoveAll(typeof(IThrottlingQueueBackgroundService<>));
+
+        services.RemoveAll(typeof(IAccumulatorQueueHandler<,>));
+        services.RemoveAll(typeof(IBubblingNotificationHandler<,>));
+        services.RemoveAll(typeof(IDebounceQueueHandler<,>));
+        services.RemoveAll(typeof(INotificationHandler<>));
+        services.RemoveAll(typeof(IQueueHandler<,>));
+        services.RemoveAll(typeof(IRequestHandler<>));
+        services.RemoveAll(typeof(IResponseHandler<,>));
+        services.RemoveAll(typeof(IStackHandler<,>));
+        services.RemoveAll(typeof(IThrottlingQueueHandler<,>));
     }
 }
