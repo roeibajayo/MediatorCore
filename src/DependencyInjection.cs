@@ -15,8 +15,6 @@ namespace Microsoft.Extensions.DependencyInjection;
 
 public static class DependencyInjection
 {
-    private static readonly Dictionary<IServiceCollection, HashSet<string>> registredAssemblies = new();
-
     /// <summary>
     /// Add MediatorCore services from the calling assembly.
     /// </summary>
@@ -56,21 +54,17 @@ public static class DependencyInjection
         if (assemblies is null)
             throw new ArgumentNullException(nameof(assemblies));
 
-        if (registredAssemblies.Count == 0)
-        {
-            MediatorCoreOptions.instance = new MediatorCoreOptions();
-            options?.Invoke(MediatorCoreOptions.instance);
+        if (services.Contains(ServiceDescriptor.Singleton(typeof(IPublisher), typeof(MessageBusPublisher))))
+            throw new InvalidOperationException("MediatorCore has already been added to the service collection.");
 
-            services.Add(new ServiceDescriptor(typeof(IPublisher),
-                typeof(MessageBusPublisher),
-                MediatorCoreOptions.instance.HandlersLifetime));
-        }
+        MediatorCoreOptions.instance = new MediatorCoreOptions();
+        options?.Invoke(MediatorCoreOptions.instance);
 
-        registredAssemblies.TryAdd(services, new HashSet<string>());
+        services.AddSingleton<IPublisher, MessageBusPublisher>();
 
         var assembliesToAdd = assemblies
             .Distinct()
-            .Where(assembly => assemblies is not null && !registredAssemblies[services].Contains(assembly.FullName!))
+            .Where(assembly => assemblies is not null)
             .ToArray();
 
         services.AddAccumulatorQueueHandlers(assembliesToAdd);
@@ -82,9 +76,6 @@ public static class DependencyInjection
         services.AddResponseHandlers(assembliesToAdd);
         services.AddStackHandlers(assembliesToAdd);
         services.AddThrottlingQueueHandlers(assembliesToAdd);
-
-        foreach (var assembly in assembliesToAdd)
-            registredAssemblies[services].Add(assembly.FullName!);
 
         return services;
     }
