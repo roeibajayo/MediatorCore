@@ -96,7 +96,7 @@ internal sealed class LockingThrottlingQueue<T> : IDisposable
                     {
                         await Task.Delay(until + TimeSpan.FromMilliseconds(20), delayTaskCancellation.Token);
 
-                        if (!delayTaskCancellation.Token.IsCancellationRequested)
+                        if (delayTaskCancellation is null || !delayTaskCancellation.Token.IsCancellationRequested)
                             waitingLocker.Release();
 
                         delayTaskCancellation = null;

@@ -6,13 +6,11 @@ internal abstract class IntervalBackgroundService : IHostedService
 {
     protected IntervalBackgroundService(int msInterval)
     {
-        timer = new PeriodicTimer(TimeSpan.FromMilliseconds(msInterval));
         Interval = msInterval;
     }
 
-    private readonly PeriodicTimer timer;
-
     internal int Interval { get; }
+    internal bool IsRunning { get; private set;}
 
     public Task StartAsync(CancellationToken cancellationToken)
     {
@@ -22,7 +20,10 @@ internal abstract class IntervalBackgroundService : IHostedService
 
     private async void RunAsync(CancellationToken cancellationToken)
     {
-        while (!cancellationToken.IsCancellationRequested)
+        IsRunning = true;
+        using var timer = new PeriodicTimer(TimeSpan.FromMilliseconds(Interval));
+
+        while (IsRunning && !cancellationToken.IsCancellationRequested)
         {
             await timer.WaitForNextTickAsync(cancellationToken);
             await OnExecuteAsync(cancellationToken);
@@ -31,7 +32,7 @@ internal abstract class IntervalBackgroundService : IHostedService
 
     public Task StopAsync(CancellationToken cancellationToken)
     {
-        timer.Dispose();
+        IsRunning = false;
         return Task.CompletedTask;
     }
 

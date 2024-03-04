@@ -9,7 +9,6 @@ using MediatorCore.RequestTypes.Request;
 using MediatorCore.RequestTypes.Response;
 using MediatorCore.RequestTypes.Stack;
 using MediatorCore.RequestTypes.ThrottlingQueue;
-using Microsoft.Extensions.DependencyInjection.Extensions;
 using System.Reflection;
 
 namespace Microsoft.Extensions.DependencyInjection;
@@ -88,20 +87,41 @@ public static class DependencyInjection
 
         services.Remove(descriptor);
 
-        services.RemoveAll(typeof(IAccumulatorQueueBackgroundService<>));
-        services.RemoveAll(typeof(IDebounceQueueBackgroundService<>));
-        services.RemoveAll(typeof(IQueueBackgroundService<>));
-        services.RemoveAll(typeof(IStackBackgroundService<>));
-        services.RemoveAll(typeof(IThrottlingQueueBackgroundService<>));
+        var typesToRemove = new[]
+        {
+            typeof(IAccumulatorQueueBackgroundService<>),
+            typeof(IAccumulatorQueueHandler<,>),
+            typeof(IBaseAccumulatorQueue<>),
 
-        services.RemoveAll(typeof(IAccumulatorQueueHandler<,>));
-        services.RemoveAll(typeof(IBubblingNotificationHandler<,>));
-        services.RemoveAll(typeof(IDebounceQueueHandler<,>));
-        services.RemoveAll(typeof(INotificationHandler<>));
-        services.RemoveAll(typeof(IQueueHandler<,>));
-        services.RemoveAll(typeof(IRequestHandler<>));
-        services.RemoveAll(typeof(IResponseHandler<,>));
-        services.RemoveAll(typeof(IStackHandler<,>));
-        services.RemoveAll(typeof(IThrottlingQueueHandler<,>));
+            typeof(IBubblingNotificationHandler<,>),
+            typeof(IBaseBubblingNotification<>),
+
+            typeof(IDebounceQueueBackgroundService<>),
+            typeof(IDebounceQueueHandler<,>),
+
+            typeof(INotificationHandler<>),
+
+            typeof(IQueueBackgroundService<>),
+            typeof(IQueueHandler<,>),
+
+            typeof(IRequestHandler<>),
+            typeof(IResponseHandler<,>),
+
+            typeof(IStackBackgroundService<>),
+            typeof(IStackHandler<,>),
+
+            typeof(IThrottlingQueueBackgroundService<>),
+            typeof(IThrottlingQueueHandler<,>)
+        };
+
+        var removed = new List<ServiceDescriptor>();
+        foreach (var service in services)
+        {
+            if (service.ServiceType.IsGenericType && typesToRemove.Contains(service.ServiceType.GetGenericTypeDefinition()))
+                removed.Add(service);
+        }
+
+        foreach (var service in removed)
+            services.Remove(service);
     }
 }
