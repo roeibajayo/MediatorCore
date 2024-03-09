@@ -58,10 +58,10 @@ internal sealed class AccumulatorQueueBackgroundService<TMessage, TOptions> :
     {
         using var scope = serviceScopeFactory.CreateScope();
         var handler = scope.ServiceProvider.GetService<IBaseAccumulatorQueue<TMessage>>();
-        await ProcessMessage(handler!, 0, messages);
+        await AccumulatorQueueBackgroundService<TMessage, TOptions>.ProcessMessage(handler!, 0, messages);
     }
 
-    private async Task ProcessMessage(IBaseAccumulatorQueue<TMessage> handler, int retries, IEnumerable<TMessage> messages)
+    private static async Task ProcessMessage(IBaseAccumulatorQueue<TMessage> handler, int retries, IEnumerable<TMessage> messages)
     {
         try
         {
@@ -70,7 +70,7 @@ internal sealed class AccumulatorQueueBackgroundService<TMessage, TOptions> :
         catch (Exception ex)
         {
             var exceptionHandler = handler!.HandleExceptionAsync(messages, ex, retries,
-                () => ProcessMessage(handler, retries + 1, messages));
+                () => AccumulatorQueueBackgroundService<TMessage, TOptions>.ProcessMessage(handler, retries + 1, messages));
 
             if (exceptionHandler is not null)
                 await exceptionHandler;

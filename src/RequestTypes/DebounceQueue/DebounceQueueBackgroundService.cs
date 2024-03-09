@@ -40,18 +40,24 @@ internal sealed class DebounceQueueBackgroundService<TMessage, TOptions> :
 
             //cancel current waiting
             cancellationTokenSource?.Cancel();
-
             cancellationTokenSource?.Dispose();
 
             //create new waiting task
             cancellationTokenSource = new CancellationTokenSource();
         }
+
         DelayTask(cancellationTokenSource.Token);
     }
 
     private async void DelayTask(CancellationToken cancellationToken)
     {
-        await Task.Delay(debounceMs, cancellationToken);
+        try
+        {
+            await Task.Delay(debounceMs, cancellationToken);
+        }
+        catch (TaskCanceledException)
+        {
+        }
 
         lock (lockObject)
         {
@@ -59,7 +65,9 @@ internal sealed class DebounceQueueBackgroundService<TMessage, TOptions> :
             {
                 cancellationTokenSource?.Dispose();
                 cancellationTokenSource = null;
-                ProcessMessage(lastItem);
+
+                if (lastItem is not null)
+                    ProcessMessage(lastItem);
             }
         }
     }
@@ -68,9 +76,10 @@ internal sealed class DebounceQueueBackgroundService<TMessage, TOptions> :
     {
         using var scope = serviceScopeFactory.CreateScope();
         var handler = scope.ServiceProvider.GetService<IBaseDebounceQueue<TMessage>>();
-        await ProcessMessage(handler!, 0, item);
+        await DebounceQueueBackgroundService<TMessage, TOptions>.ProcessMessage(handler!, 0, item);
     }
-    private async Task ProcessMessage(IBaseDebounceQueue<TMessage> handler, int retries, TMessage item)
+
+    private static async Task ProcessMessage(IBaseDebounceQueue<TMessage> handler, int retries, TMessage item)
     {
         try
         {
@@ -79,7 +88,7 @@ internal sealed class DebounceQueueBackgroundService<TMessage, TOptions> :
         catch (Exception ex)
         {
             var exceptionHandler = handler!.HandleExceptionAsync(item, ex, retries,
-                () => ProcessMessage(handler, retries + 1, item));
+                () => DebounceQueueBackgroundService<TMessage, TOptions>.ProcessMessage(handler, retries + 1, item));
 
             if (exceptionHandler is not null)
                 await exceptionHandler;
