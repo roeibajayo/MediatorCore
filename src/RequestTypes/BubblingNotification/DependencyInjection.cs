@@ -13,23 +13,26 @@ internal static class DependencyInjection
         var orders = new Dictionary<Type, List<(Type, IBubblingNotificationOptions)>>();
         foreach (var handler in handlers)
         {
-            var handlerInterface = handler.GetInterfaces()
-                .First(x => x.IsGenericType && x.GetGenericTypeDefinition() == notificaitonHandler);
-            var handlerArgs = handlerInterface
-                .GetGenericArguments();
+            var handlerInterfaces = handler.GetInterfaces()
+                .Where(x => x.IsGenericType && x.GetGenericTypeDefinition() == notificaitonHandler);
 
-            var messageType = handlerArgs[0];
-            var optionsType = handlerArgs[1];
-            var options = Activator.CreateInstance(optionsType) as IBubblingNotificationOptions;
+            foreach (var handlerInterface in handlerInterfaces)
+            {
+                var handlerArgs = handlerInterface
+                    .GetGenericArguments();
 
-            if (orders.TryGetValue(messageType, out var list))
-            {
-                list.Add((handler, options!));
-            }
-            else
-            {
-                orders.Add(messageType,
-                    new List<(Type, IBubblingNotificationOptions)> { (handler, options!) });
+                var messageType = handlerArgs[0];
+                var optionsType = handlerArgs[1];
+                var options = Activator.CreateInstance(optionsType) as IBubblingNotificationOptions;
+
+                if (orders.TryGetValue(messageType, out var list))
+                {
+                    list.Add((handler, options!));
+                }
+                else
+                {
+                    orders.Add(messageType, [(handler, options!)]);
+                }
             }
         }
 

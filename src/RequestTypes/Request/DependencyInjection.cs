@@ -11,15 +11,17 @@ internal static class DependencyInjection
         var handlers = AssemblyExtentions.GetAllInherits(typeof(IRequestHandler<>), assemblies: assemblies);
         foreach (var handler in handlers)
         {
-            var messageType = handler.GetInterfaces()
-                .First(x => x.IsGenericType && x.GetGenericTypeDefinition() == typeof(IRequestHandler<>))
-                .GetGenericArguments()
-                .First();
+            var handlerInterfaces = handler.GetInterfaces()
+                .Where(x => x.IsGenericType && x.GetGenericTypeDefinition() == typeof(IRequestHandler<>));
 
-            var handlerInterface = typeof(IRequestHandler<>).MakeGenericType(messageType);
-            services.Add(new ServiceDescriptor(handlerInterface,
-                handler,
-                MediatorCoreOptions.instance.HandlersLifetime));
+            foreach (var item in handlerInterfaces)
+            {
+                var messageType = item.GetGenericArguments().First();
+                var handlerInterface = typeof(IRequestHandler<>).MakeGenericType(messageType);
+                services.Add(new ServiceDescriptor(handlerInterface,
+                    handler,
+                    MediatorCoreOptions.instance.HandlersLifetime));
+            }
         }
     }
 }

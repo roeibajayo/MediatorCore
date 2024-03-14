@@ -5,8 +5,8 @@
     <ImplicitUsings>enable</ImplicitUsings>
     <Nullable>enable</Nullable>
     <SignAssembly>False</SignAssembly>
-    <LangVersion>10</LangVersion>
-    <Version>1.5.25</Version>
+    <LangVersion>12</LangVersion>
+    <Version>1.6</Version>
     <Authors>roeibajayo</Authors>
     <PackageId>MediatorCore</PackageId>
     <Company>RoeiBajayo</Company>

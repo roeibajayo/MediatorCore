@@ -12,25 +12,29 @@ internal static class DependencyInjection
         var handlers = AssemblyExtentions.GetAllInherits(typeof(IDebounceQueueHandler<,>), assemblies: assemblies);
         foreach (var handler in handlers)
         {
-            var args = handler.GetInterfaces()
-                .First(x => x.IsGenericType && x.GetGenericTypeDefinition() == typeof(IDebounceQueueHandler<,>))
-                .GetGenericArguments();
+            var handlerInterfaces = handler.GetInterfaces()
+                .Where(x => x.IsGenericType && x.GetGenericTypeDefinition() == typeof(IDebounceQueueHandler<,>));
 
-            var messageType = args[0];
-            var optionsType = args[1];
+            foreach (var item in handlerInterfaces)
+            {
+                var args = item.GetGenericArguments();
 
-            var serviceType = typeof(DebounceQueueBackgroundService<,>)
-                .MakeGenericType(messageType, optionsType);
-            var serviceInterface = typeof(IDebounceQueueBackgroundService<>)
-                .MakeGenericType(messageType);
-            services.AddSingleton(serviceInterface, serviceType);
-            services.AddSingleton(s => s.GetRequiredService(serviceInterface) as IHostedService);
+                var messageType = args[0];
+                var optionsType = args[1];
 
-            var handlerInterface = typeof(IBaseDebounceQueue<>)
-                .MakeGenericType(messageType);
-            services.Add(new ServiceDescriptor(handlerInterface,
-                handler,
-                MediatorCoreOptions.instance.HandlersLifetime));
+                var serviceType = typeof(DebounceQueueBackgroundService<,>)
+                    .MakeGenericType(messageType, optionsType);
+                var serviceInterface = typeof(IDebounceQueueBackgroundService<>)
+                    .MakeGenericType(messageType);
+                services.AddSingleton(serviceInterface, serviceType);
+                services.AddSingleton(s => s.GetRequiredService(serviceInterface) as IHostedService);
+
+                var handlerInterface = typeof(IBaseDebounceQueue<>)
+                    .MakeGenericType(messageType);
+                services.Add(new ServiceDescriptor(handlerInterface,
+                    handler,
+                    MediatorCoreOptions.instance.HandlersLifetime));
+            }
         }
     }
 }

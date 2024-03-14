@@ -1,4 +1,5 @@
 ﻿using MediatorCore;
+using MediatorCore.Infrastructure;
 using MediatorCore.Publisher;
 using MediatorCore.RequestTypes.AccumulatorQueue;
 using MediatorCore.RequestTypes.BubblingNotification;
@@ -24,7 +25,7 @@ public static class DependencyInjection
     public static IServiceCollection AddMediatorCore(this IServiceCollection services,
         Action<MediatorCoreOptions>? options = null)
     {
-        return AddMediatorCore(services, new[] { Assembly.GetCallingAssembly() }, options);
+        return AddMediatorCore(services, [Assembly.GetCallingAssembly(), .. Assembly.GetCallingAssembly().GetAllReferencedAssemblies()], options);
     }
 
     /// <summary>
@@ -37,7 +38,7 @@ public static class DependencyInjection
     public static IServiceCollection AddMediatorCore<TMarker>(this IServiceCollection services,
         Action<MediatorCoreOptions>? options = null)
     {
-        return AddMediatorCore(services, new[] { typeof(TMarker).Assembly }, options);
+        return AddMediatorCore(services, [typeof(TMarker).Assembly], options);
     }
 
     /// <summary>

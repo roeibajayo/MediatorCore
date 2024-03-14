@@ -12,26 +12,30 @@ internal static class DependencyInjection
         var handlers = AssemblyExtentions.GetAllInherits(typeof(IQueueHandler<,>), assemblies: assemblies);
         foreach (var handler in handlers)
         {
-            var args = handler.GetInterfaces()
-                .First(x => x.IsGenericType && x.GetGenericTypeDefinition() == typeof(IQueueHandler<,>))
-                .GetGenericArguments();
+            var handlerInterfaces = handler.GetInterfaces()
+                .Where(x => x.IsGenericType && x.GetGenericTypeDefinition() == typeof(IQueueHandler<,>));
 
-            var messageType = args[0];
-            var optionsType = args[1];
+            foreach (var item in handlerInterfaces)
+            {
+                var args = item.GetGenericArguments();
 
-            var serviceType = typeof(QueueBackgroundService<,>)
-                .MakeGenericType(messageType, optionsType);
-            var serviceInterface = typeof(IQueueBackgroundService<>)
-                .MakeGenericType(messageType);
-            services.AddSingleton(serviceInterface, serviceType);
-            services.AddSingleton(s => s.GetRequiredService(serviceInterface) as IHostedService);
+                var messageType = args[0];
+                var optionsType = args[1];
 
-            var handlerInterface = typeof(IBaseQueueHandler<>)
-                .MakeGenericType(messageType);
+                var serviceType = typeof(QueueBackgroundService<,>)
+                    .MakeGenericType(messageType, optionsType);
+                var serviceInterface = typeof(IQueueBackgroundService<>)
+                    .MakeGenericType(messageType);
+                services.AddSingleton(serviceInterface, serviceType);
+                services.AddSingleton(s => s.GetRequiredService(serviceInterface) as IHostedService);
 
-            services.Add(new ServiceDescriptor(handlerInterface,
-                handler,
-                MediatorCoreOptions.instance.HandlersLifetime));
+                var handlerInterface = typeof(IBaseQueueHandler<>)
+                    .MakeGenericType(messageType);
+
+                services.Add(new ServiceDescriptor(handlerInterface,
+                    handler,
+                    MediatorCoreOptions.instance.HandlersLifetime));
+            }
         }
     }
 }

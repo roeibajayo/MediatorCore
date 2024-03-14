@@ -14,21 +14,24 @@ internal static class DependencyInjection
         var handlers = AssemblyExtentions.GetAllInherits(typeof(IResponseHandler<,>), assemblies: assemblies);
         foreach (var handler in handlers)
         {
-            var types = handler.GetInterfaces()
-                .First(x => x.IsGenericType && x.GetGenericTypeDefinition() == typeof(IResponseHandler<,>))
-                .GetGenericArguments();
+            var handlerInterfaces = handler.GetInterfaces()
+                .Where(x => x.IsGenericType && x.GetGenericTypeDefinition() == typeof(IResponseHandler<,>));
 
-            var message = types[0];
-            var response = types[1];
+            foreach (var item in handlerInterfaces)
+            {
+                var types = item.GetGenericArguments();
+                var message = types[0];
+                var response = types[1];
 
-            var handlerInterface = typeof(IResponseHandler<,>).MakeGenericType(types);
-            services.Add(new ServiceDescriptor(handlerInterface,
-                handler,
-                MediatorCoreOptions.instance.HandlersLifetime));
+                var handlerInterface = typeof(IResponseHandler<,>).MakeGenericType(types);
+                services.Add(new ServiceDescriptor(handlerInterface,
+                    handler,
+                    MediatorCoreOptions.instance.HandlersLifetime));
 
-            var wrapperType = typeof(ResponseHandlerWrapper<,>).MakeGenericType(message, response);
-            var wrapper = Activator.CreateInstance(wrapperType);
-            responseHandlers!.TryAdd(message, wrapper);
+                var wrapperType = typeof(ResponseHandlerWrapper<,>).MakeGenericType(message, response);
+                var wrapper = Activator.CreateInstance(wrapperType);
+                responseHandlers!.TryAdd(message, wrapper);
+            }
         }
     }
 }
