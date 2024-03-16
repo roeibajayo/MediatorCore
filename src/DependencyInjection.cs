@@ -1,5 +1,4 @@
 ﻿using MediatorCore;
-using MediatorCore.Infrastructure;
 using MediatorCore.Publisher;
 using MediatorCore.RequestTypes.AccumulatorQueue;
 using MediatorCore.RequestTypes.BubblingNotification;
@@ -10,24 +9,13 @@ using MediatorCore.RequestTypes.Request;
 using MediatorCore.RequestTypes.Response;
 using MediatorCore.RequestTypes.Stack;
 using MediatorCore.RequestTypes.ThrottlingQueue;
+using Microsoft.Extensions.DependencyInjection.Extensions;
 using System.Reflection;
 
 namespace Microsoft.Extensions.DependencyInjection;
 
 public static class DependencyInjection
 {
-    /// <summary>
-    /// Add MediatorCore services from the calling assembly.
-    /// </summary>
-    /// <param name="services"></param>
-    /// <param name="options">Global MediatorCore configuration (Optional).</param>
-    /// <returns>The original <paramref name="services"/>.</returns>
-    public static IServiceCollection AddMediatorCore(this IServiceCollection services,
-        Action<MediatorCoreOptions>? options = null)
-    {
-        return AddMediatorCore(services, [Assembly.GetCallingAssembly(), .. Assembly.GetCallingAssembly().GetAllReferencedAssemblies()], options);
-    }
-
     /// <summary>
     /// Add MediatorCore services from assembly that contains the <typeparamref name="TMarker"/> type.
     /// </summary>
@@ -49,38 +37,36 @@ public static class DependencyInjection
     /// <param name="options">Global MediatorCore configuration (Optional).</param>
     /// <returns>The original <paramref name="services"/>.</returns>
     public static IServiceCollection AddMediatorCore(this IServiceCollection services,
-        Assembly[] assemblies,
+        IEnumerable<Assembly> assemblies,
         Action<MediatorCoreOptions>? options = null)
     {
         if (assemblies is null)
             throw new ArgumentNullException(nameof(assemblies));
 
-        TryRemoveMediatorCore(services);
+        var optionsInstance = new MediatorCoreOptions();
+        options?.Invoke(optionsInstance);
 
-        MediatorCoreOptions.instance = new MediatorCoreOptions();
-        options?.Invoke(MediatorCoreOptions.instance);
-
-        services.AddSingleton<IPublisher, MessageBusPublisher>();
+        services.TryAddSingleton<IPublisher, MessageBusPublisher>();
 
         var assembliesToAdd = assemblies
             .Distinct()
             .Where(assembly => assemblies is not null)
             .ToArray();
 
-        services.AddAccumulatorQueueHandlers(assembliesToAdd);
-        services.AddBubblingNotificationHandlers(assembliesToAdd);
-        services.AddDebounceQueueHandlers(assembliesToAdd);
-        services.AddNotificationHandlers(assembliesToAdd);
-        services.AddQueueHandlers(assembliesToAdd);
-        services.AddRequestHandlers(assembliesToAdd);
-        services.AddResponseHandlers(assembliesToAdd);
-        services.AddStackHandlers(assembliesToAdd);
-        services.AddThrottlingQueueHandlers(assembliesToAdd);
+        services.AddAccumulatorQueueHandlers(optionsInstance, assembliesToAdd);
+        services.AddBubblingNotificationHandlers(optionsInstance, assembliesToAdd);
+        services.AddDebounceQueueHandlers(optionsInstance, assembliesToAdd);
+        services.AddNotificationHandlers(optionsInstance, assembliesToAdd);
+        services.AddQueueHandlers(optionsInstance, assembliesToAdd);
+        services.AddRequestHandlers(optionsInstance, assembliesToAdd);
+        services.AddResponseHandlers(optionsInstance, assembliesToAdd);
+        services.AddStackHandlers(optionsInstance, assembliesToAdd);
+        services.AddThrottlingQueueHandlers(optionsInstance, assembliesToAdd);
 
         return services;
     }
 
-    private static void TryRemoveMediatorCore(IServiceCollection services)
+    public static void TryRemoveMediatorCore(this IServiceCollection services)
     {
         var descriptor = services.FirstOrDefault(d => d.ServiceType == typeof(IPublisher));
         if (descriptor is null)

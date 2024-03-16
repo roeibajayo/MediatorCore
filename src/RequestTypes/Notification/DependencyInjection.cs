@@ -6,24 +6,24 @@ namespace MediatorCore.RequestTypes.Notification;
 
 internal static class DependencyInjection
 {
-    internal static void AddNotificationHandlers(this IServiceCollection services, Assembly[] assemblies)
+    internal static void AddNotificationHandlers(this IServiceCollection services,
+        MediatorCoreOptions options, Assembly[] assemblies)
     {
-        var notificaitonHandler = typeof(INotificationHandler<>);
-        var handlers = AssemblyExtentions.GetAllInherits(notificaitonHandler, assemblies: assemblies);
+        var handlerType = typeof(INotificationHandler<>);
+        var handlers = AssemblyExtentions.GetAllInherits(assemblies, handlerType);
         foreach (var handler in handlers)
         {
             var handlerInterfaces = handler.GetInterfaces()
-                .Where(x => x.IsGenericType && x.GetGenericTypeDefinition() == notificaitonHandler);
+                .Where(x => x.IsGenericType && x.GetGenericTypeDefinition() == handlerType);
 
             foreach (var handlerInterface in handlerInterfaces)
             {
-                var messageType = handlerInterface
-                    .GetGenericArguments()
-                    .First();
+                if (services.Any(x => x.ServiceType == handlerInterface && x.ImplementationType == handler))
+                    continue;
 
                 services.Add(new ServiceDescriptor(handlerInterface,
                     handler,
-                    MediatorCoreOptions.instance.HandlersLifetime));
+                    options.HandlersLifetime));
             }
         }
     }

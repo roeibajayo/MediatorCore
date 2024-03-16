@@ -6,21 +6,24 @@ namespace MediatorCore.RequestTypes.Request;
 
 internal static class DependencyInjection
 {
-    internal static void AddRequestHandlers(this IServiceCollection services, Assembly[] assemblies)
+    internal static void AddRequestHandlers(this IServiceCollection services,
+        MediatorCoreOptions options, Assembly[] assemblies)
     {
-        var handlers = AssemblyExtentions.GetAllInherits(typeof(IRequestHandler<>), assemblies: assemblies);
+        var handlerType = typeof(IRequestHandler<>);
+        var handlers = AssemblyExtentions.GetAllInherits(assemblies, handlerType);
         foreach (var handler in handlers)
         {
             var handlerInterfaces = handler.GetInterfaces()
-                .Where(x => x.IsGenericType && x.GetGenericTypeDefinition() == typeof(IRequestHandler<>));
+                .Where(x => x.IsGenericType && x.GetGenericTypeDefinition() == handlerType);
 
-            foreach (var item in handlerInterfaces)
+            foreach (var handlerInterface in handlerInterfaces)
             {
-                var messageType = item.GetGenericArguments().First();
-                var handlerInterface = typeof(IRequestHandler<>).MakeGenericType(messageType);
+                if (services.Any(x => x.ServiceType == handlerInterface && x.ImplementationType == handler))
+                    continue;
+
                 services.Add(new ServiceDescriptor(handlerInterface,
                     handler,
-                    MediatorCoreOptions.instance.HandlersLifetime));
+                    options.HandlersLifetime));
             }
         }
     }

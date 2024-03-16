@@ -4,38 +4,17 @@ namespace MediatorCore.Infrastructure;
 
 internal static class AssemblyExtentions
 {
-    internal static Assembly[] GetAllReferencedAssemblies(this Assembly assembly)
-    {
-        return assembly
-            .GetReferencedAssemblies()
-            .Select(Assembly.Load)
-            .SelectMany(a => a.GetAllReferencedAssemblies())
-            .Distinct()
-            .ToArray();
-    }
     internal static IEnumerable<Type> GetAllInheritsFromMarker(Type type, Type marker,
             bool ignoreAbstract = true,
             bool directBaseTypeOnly = false)
     {
-        return GetAllInherits(type, ignoreAbstract, directBaseTypeOnly, assemblies: marker.Assembly);
+        return GetAllInherits([marker.Assembly], type, ignoreAbstract, directBaseTypeOnly);
     }
 
-    internal static IEnumerable<Type> GetAllInherits(Type type, bool ignoreAbstract = true,
-            bool directBaseTypeOnly = false,
-            params Assembly[] assemblies)
+    internal static IEnumerable<Type> GetAllInherits(IEnumerable<Assembly> assemblies, Type type, 
+        bool ignoreAbstract = true, 
+        bool directBaseTypeOnly = false)
     {
-        if (assemblies.Length == 0)
-        {
-            assemblies = Assembly
-                .GetExecutingAssembly()
-                .GetAllReferencedAssemblies()
-                .Concat(Assembly
-                .GetEntryAssembly()
-                .GetAllReferencedAssemblies())
-                .Concat(new[] { Assembly.GetEntryAssembly() })
-                .ToArray();
-        }
-
         return assemblies
             .SelectMany(x => x.DefinedTypes)
             .Where(t => (!ignoreAbstract || !t.IsAbstract) &&

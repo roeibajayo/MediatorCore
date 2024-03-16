@@ -9,24 +9,29 @@ internal static class DependencyInjection
     internal static IDictionary<Type, object> responseHandlers =
         new Dictionary<Type, object>();
 
-    internal static void AddResponseHandlers(this IServiceCollection services, Assembly[] assemblies)
+    internal static void AddResponseHandlers(this IServiceCollection services,
+        MediatorCoreOptions options, Assembly[] assemblies)
     {
-        var handlers = AssemblyExtentions.GetAllInherits(typeof(IResponseHandler<,>), assemblies: assemblies);
+        var handlerType = typeof(IResponseHandler<,>);
+        var handlers = AssemblyExtentions.GetAllInherits(assemblies, handlerType);
         foreach (var handler in handlers)
         {
             var handlerInterfaces = handler.GetInterfaces()
-                .Where(x => x.IsGenericType && x.GetGenericTypeDefinition() == typeof(IResponseHandler<,>));
+                .Where(x => x.IsGenericType && x.GetGenericTypeDefinition() == handlerType);
 
             foreach (var item in handlerInterfaces)
             {
                 var types = item.GetGenericArguments();
                 var message = types[0];
                 var response = types[1];
+                var handlerInterface = handlerType.MakeGenericType(types);
 
-                var handlerInterface = typeof(IResponseHandler<,>).MakeGenericType(types);
+                if (services.Any(x => x.ServiceType == handlerInterface && x.ImplementationType == handler))
+                    continue;
+
                 services.Add(new ServiceDescriptor(handlerInterface,
                     handler,
-                    MediatorCoreOptions.instance.HandlersLifetime));
+                    options.HandlersLifetime));
 
                 var wrapperType = typeof(ResponseHandlerWrapper<,>).MakeGenericType(message, response);
                 var wrapper = Activator.CreateInstance(wrapperType);

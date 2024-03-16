@@ -6,15 +6,16 @@ namespace MediatorCore.RequestTypes.BubblingNotification;
 
 internal static class DependencyInjection
 {
-    internal static void AddBubblingNotificationHandlers(this IServiceCollection services, Assembly[] assemblies)
+    internal static void AddBubblingNotificationHandlers(this IServiceCollection services,
+        MediatorCoreOptions options, Assembly[] assemblies)
     {
-        var notificaitonHandler = typeof(IBubblingNotificationHandler<,>);
-        var handlers = AssemblyExtentions.GetAllInherits(notificaitonHandler, assemblies: assemblies);
+        var handlerType = typeof(IBubblingNotificationHandler<,>);
+        var handlers = AssemblyExtentions.GetAllInherits(assemblies, handlerType);
         var orders = new Dictionary<Type, List<(Type, IBubblingNotificationOptions)>>();
         foreach (var handler in handlers)
         {
             var handlerInterfaces = handler.GetInterfaces()
-                .Where(x => x.IsGenericType && x.GetGenericTypeDefinition() == notificaitonHandler);
+                .Where(x => x.IsGenericType && x.GetGenericTypeDefinition() == handlerType);
 
             foreach (var handlerInterface in handlerInterfaces)
             {
@@ -23,15 +24,15 @@ internal static class DependencyInjection
 
                 var messageType = handlerArgs[0];
                 var optionsType = handlerArgs[1];
-                var options = Activator.CreateInstance(optionsType) as IBubblingNotificationOptions;
+                var notificationOptions = Activator.CreateInstance(optionsType) as IBubblingNotificationOptions;
 
                 if (orders.TryGetValue(messageType, out var list))
                 {
-                    list.Add((handler, options!));
+                    list.Add((handler, notificationOptions!));
                 }
                 else
                 {
-                    orders.Add(messageType, [(handler, options!)]);
+                    orders.Add(messageType, [(handler, notificationOptions!)]);
                 }
             }
         }
@@ -40,9 +41,14 @@ internal static class DependencyInjection
         {
             foreach (var handler in foundHandlers.Value.OrderBy(x => x.Item2.Sort).Select(x => x.Item1))
             {
-                services.Add(new ServiceDescriptor(typeof(IBaseBubblingNotification<>).MakeGenericType(foundHandlers.Key),
+                var handlerInterface = typeof(IBaseBubblingNotification<>).MakeGenericType(foundHandlers.Key);
+
+                if (services.Any(x => x.ServiceType == handlerInterface && x.ImplementationType == handler))
+                    continue;
+
+                services.Add(new ServiceDescriptor(handlerInterface,
                     handler,
-                    MediatorCoreOptions.instance.HandlersLifetime));
+                    options.HandlersLifetime));
             }
         }
     }

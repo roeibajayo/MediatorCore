@@ -4,10 +4,8 @@ namespace MediatorCore;
 
 public class MediatorCoreOptions
 {
-    internal static MediatorCoreOptions instance;
-
     /// <summary>
-    /// Handlers lifetime. Default value is <see cref="ServiceLifetime.Transient"/>.
+    /// Handlers lifetime. Default value is <see cref="ServiceLifetime.Scoped"/>.
     /// </summary>
-    public ServiceLifetime HandlersLifetime { get; set; } = ServiceLifetime.Transient;
+    public ServiceLifetime HandlersLifetime { get; set; } = ServiceLifetime.Scoped;
 }

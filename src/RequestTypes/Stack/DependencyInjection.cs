@@ -7,13 +7,15 @@ namespace MediatorCore.RequestTypes.Stack;
 
 internal static class DependencyInjection
 {
-    internal static void AddStackHandlers(this IServiceCollection services, Assembly[] assemblies)
+    internal static void AddStackHandlers(this IServiceCollection services,
+        MediatorCoreOptions options, Assembly[] assemblies)
     {
-        var handlers = AssemblyExtentions.GetAllInherits(typeof(IStackHandler<,>), assemblies: assemblies);
+        var handlerType = typeof(IStackHandler<,>);
+        var handlers = AssemblyExtentions.GetAllInherits(assemblies, handlerType);
         foreach (var handler in handlers)
         {
             var handlerInterfaces = handler.GetInterfaces()
-                .Where(x => x.IsGenericType && x.GetGenericTypeDefinition() == typeof(IStackHandler<,>));
+                .Where(x => x.IsGenericType && x.GetGenericTypeDefinition() == handlerType);
 
             foreach (var item in handlerInterfaces)
             {
@@ -21,19 +23,22 @@ internal static class DependencyInjection
                 var messageType = args[0];
                 var optionsType = args[1];
 
+                var handlerInterface = typeof(IBaseStackHandler<>)
+                    .MakeGenericType(messageType);
+
+                if (services.Any(x => x.ServiceType == handlerInterface && x.ImplementationType == handler))
+                    continue;
+
                 var serviceType = typeof(StackBackgroundService<,>)
                     .MakeGenericType(messageType, optionsType);
                 var serviceInterface = typeof(IStackBackgroundService<>)
                     .MakeGenericType(messageType);
+
                 services.AddSingleton(serviceInterface, serviceType);
                 services.AddSingleton(s => s.GetRequiredService(serviceInterface) as IHostedService);
-
-                var handlerInterface = typeof(IBaseStackHandler<>)
-                    .MakeGenericType(messageType);
-
                 services.Add(new ServiceDescriptor(handlerInterface,
                     handler,
-                    MediatorCoreOptions.instance.HandlersLifetime));
+                    options.HandlersLifetime));
             }
         }
     }

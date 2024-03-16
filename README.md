@@ -15,15 +15,15 @@ High-performance yet easy to use mediator pattern and in-process message bus imp
 ✔ Developers friendly ❤️ Easy to use.
 
 ### Supported handlers:
-- Request without response `IRequestHandler<IRequestMessage>`
-- Request with response `IResponseHandler<IResponseMessage, TResponse>`
-- Notification (parallel execution) `INotificationHandler<INotificationMessage>`
-- Bubbling notification `IBubblingNotificationHandler<IBubblingNotificationMessage, IBubblingNotificationOptions>`
-- Queue `IQueueHandler<IQueueHandlerMessage, IQueueHandlerOptions>`
-- Stack `IStackHandler<IStackHandlerMessage, IStackHandlerOptions>`
-- Debounce queue `IDebounceQueueHandler<IDebounceQueueMessage, IDebounceQueueOptions>`
-- Throttling queue `IThrottlingQueueHandler<IThrottlingQueueMessage, IThrottlingQueueOptions>`
-- Accumulator queue `IAccumulatorQueueHandler<IAccumulatorQueueMessage, IAccumulatorQueueOptions>`
+- Request without response `IRequestHandler<>`
+- Request with response `IResponseHandler<,>`
+- Notification (parallel execution) `INotificationHandler<>`
+- Bubbling notification `IBubblingNotificationHandler<,>`
+- Queue `IQueueHandler<,>`
+- Stack `IStackHandler<,>`
+- Debounce queue `IDebounceQueueHandler<,>`
+- Throttling queue `IThrottlingQueueHandler<,>`
+- Accumulator queue `IAccumulatorQueueHandler<,>`
 
 ## Benchmarks MediatorCore (1.3.0) vs MediatR (12.0.1):
 |                                        Method |       Mean |       Error |    StdDev | Allocated |
