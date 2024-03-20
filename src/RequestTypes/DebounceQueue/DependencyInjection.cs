@@ -14,31 +14,37 @@ internal static class DependencyInjection
         var handlers = AssemblyExtentions.GetAllInherits(assemblies, handlerType);
         foreach (var handler in handlers)
         {
-            var handlerInterfaces = handler.GetInterfaces()
-                .Where(x => x.IsGenericType && x.GetGenericTypeDefinition() == handlerType);
+            services.AddDebounceQueueHandler(options, handler, handlerType);
+        }
+    }
+    internal static void AddDebounceQueueHandler(this IServiceCollection services,
+        MediatorCoreOptions options, Type handler, Type? handlerType = null)
+    {
+        handlerType ??= typeof(IDebounceQueueHandler<,>);
+        var handlerInterfaces = handler.GetInterfaces()
+            .Where(x => x.IsGenericType && x.GetGenericTypeDefinition() == handlerType);
 
-            foreach (var item in handlerInterfaces)
-            {
-                var args = item.GetGenericArguments();
-                var messageType = args[0];
-                var optionsType = args[1];
-                var handlerInterface = typeof(IBaseDebounceQueue<>)
-                    .MakeGenericType(messageType);
+        foreach (var item in handlerInterfaces)
+        {
+            var args = item.GetGenericArguments();
+            var messageType = args[0];
+            var optionsType = args[1];
+            var handlerInterface = typeof(IBaseDebounceQueue<>)
+                .MakeGenericType(messageType);
 
-                if (services.Any(x => x.ServiceType == handlerInterface && x.ImplementationType == handler))
-                    continue;
+            if (services.Any(x => x.ServiceType == handlerInterface && x.ImplementationType == handler))
+                continue;
 
-                var serviceType = typeof(DebounceQueueBackgroundService<,>)
-                    .MakeGenericType(messageType, optionsType);
-                var serviceInterface = typeof(IDebounceQueueBackgroundService<>)
-                    .MakeGenericType(messageType);
-                services.AddSingleton(serviceInterface, serviceType);
-                services.AddSingleton(s => s.GetRequiredService(serviceInterface) as IHostedService);
+            var serviceType = typeof(DebounceQueueBackgroundService<,>)
+                .MakeGenericType(messageType, optionsType);
+            var serviceInterface = typeof(IDebounceQueueBackgroundService<>)
+                .MakeGenericType(messageType);
+            services.AddSingleton(serviceInterface, serviceType);
+            services.AddSingleton(s => s.GetRequiredService(serviceInterface) as IHostedService);
 
-                services.Add(new ServiceDescriptor(handlerInterface,
-                    handler,
-                    options.HandlersLifetime));
-            }
+            services.Add(new ServiceDescriptor(handlerInterface,
+                handler,
+                options.HandlersLifetime));
         }
     }
 }

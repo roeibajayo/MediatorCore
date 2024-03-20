@@ -1,4 +1,3 @@
-using MediatorCore.RequestTypes.Notification;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 
@@ -6,10 +5,68 @@ namespace MediatorCore.Tests.RequestTypes;
 
 public class Notification : BaseUnitTest
 {
+    [Fact]
+    public async Task PublishNotificationMessage_SpecificRegister_RegisterTwice_ReturnNoErrors()
+    {
+        //Arrange
+        var counts = 3;
+        var services = GenerateServiceProvider(services =>
+        {
+            services.AddMediatorCoreHandler<Notification1Handler>();
+            services.AddMediatorCoreHandler<Notification1Handler>();
+        });
+        var publisher = services.GetService<IPublisher>()!;
+        var logger = services.GetService<ILogger>()!;
+        var id = "1_" + Guid.NewGuid();
+
+        //Act
+        for (var i = 0; i < counts; i++)
+        {
+            await publisher.PublishAsync(new NotificationMessage(id));
+        }
+
+        //Assert
+        if (ReceivedDebugs(logger, "FirstNotification1Message: " + id) == counts &&
+            ReceivedDebugs(logger, "Notification2Message: " + id) == 0)
+        {
+            return;
+        }
+        throw new Exception("No dequeue executed");
+    }
+
+    [Fact]
+    public async Task PublishNotificationMessage_SpecificRegister_ReturnNoErrors()
+    {
+        //Arrange
+        var counts = 3;
+        var services = GenerateServiceProvider(services =>
+        {
+            services.AddMediatorCoreHandler<Notification1Handler>();
+            services.AddMediatorCoreHandler<Notification2Handler>();
+        });
+        var publisher = services.GetService<IPublisher>()!;
+        var logger = services.GetService<ILogger>()!;
+        var id = "1_" + Guid.NewGuid();
+
+        //Act
+        for (var i = 0; i < counts; i++)
+        {
+            await publisher.PublishAsync(new NotificationMessage(id));
+        }
+
+        //Assert
+        if (ReceivedDebugs(logger, "FirstNotification1Message: " + id) == counts &&
+            ReceivedDebugs(logger, "Notification2Message: " + id) == counts)
+        {
+            return;
+        }
+        throw new Exception("No dequeue executed");
+    }
+
     [Theory]
     [InlineData(1)]
     [InlineData(100)]
-    public async Task PublishBubbleMessage_ReturnNoErrorsAndDequeue(int counts)
+    public async Task PublishNotificationMessage_ReturnNoErrors(int counts)
     {
         //Arrange
         var publisher = ServiceProvider.GetService<IPublisher>()!;
@@ -34,7 +91,7 @@ public class Notification : BaseUnitTest
     [Theory]
     [InlineData(1)]
     [InlineData(100)]
-    public async Task PublishBubbleMessage_TwoMessagesSameHanlder_ReturnNoErrorsAndDequeue(int counts)
+    public async Task PublishNotificationMessage_TwoMessagesSameHanlder_ReturnNoErrors(int counts)
     {
         //Arrange
         var publisher = ServiceProvider.GetService<IPublisher>()!;

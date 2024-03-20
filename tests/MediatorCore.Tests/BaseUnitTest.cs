@@ -10,35 +10,35 @@ public class BaseUnitTest
     private static IServiceProvider? _serviceProvider;
     private static readonly object _lock = new();
 
-    protected static IServiceProvider ServiceProvider =>
-        _serviceProvider ?? GenerateServiceProvider();
-
-    protected static IServiceProvider GenerateServiceProvider()
+    protected static IServiceProvider ServiceProvider
     {
-        lock (_lock)
+        get
         {
-            if (_serviceProvider is not null)
-                return _serviceProvider;
-
-            var serviceBuilder = new ServiceCollection();
-            serviceBuilder.AddMediatorCore<BaseUnitTest>();
-            //test register even if already registered
-            serviceBuilder.AddMediatorCore<BaseUnitTest>();
-            var logger = Substitute.For<ILogger>();
-            serviceBuilder.AddSingleton(logger);
-            serviceBuilder.AddTransient(typeof(ILogger<>), typeof(FakeCategoryLogger<>));
-
-            var serviceProvider = serviceBuilder.BuildServiceProvider();
-
-            var services = serviceProvider.GetServices<IHostedService>();
-            foreach (var service in services)
+            lock (_lock)
             {
-                service.StartAsync(CancellationToken.None);
+                _serviceProvider ??= GenerateServiceProvider(serviceBuilder => serviceBuilder.AddMediatorCore<BaseUnitTest>());
+                return _serviceProvider;
             }
-
-            _serviceProvider = serviceProvider;
-            return serviceProvider;
         }
+    }
+
+    protected static IServiceProvider GenerateServiceProvider(Action<ServiceCollection>? serviceCollection = null)
+    {
+        var serviceBuilder = new ServiceCollection();
+        serviceCollection?.Invoke(serviceBuilder);
+        var logger = Substitute.For<ILogger>();
+        serviceBuilder.AddSingleton(logger);
+        serviceBuilder.AddTransient(typeof(ILogger<>), typeof(FakeCategoryLogger<>));
+
+        var serviceProvider = serviceBuilder.BuildServiceProvider();
+
+        var services = serviceProvider.GetServices<IHostedService>();
+        foreach (var service in services)
+        {
+            service.StartAsync(CancellationToken.None);
+        }
+
+        return serviceProvider;
     }
 
     protected static int ReceivedWarnings(ILogger logger, string contains)

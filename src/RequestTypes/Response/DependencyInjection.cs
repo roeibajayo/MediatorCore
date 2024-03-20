@@ -16,30 +16,38 @@ internal static class DependencyInjection
         var handlers = AssemblyExtentions.GetAllInherits(assemblies, handlerType);
         foreach (var handler in handlers)
         {
-            var handlerInterfaces = handler.GetInterfaces()
-                .Where(x => x.IsGenericType && x.GetGenericTypeDefinition() == handlerType);
+            services.AddResponseHandler(options, handler, handlerType);
+        }
+    }
 
-            foreach (var item in handlerInterfaces)
-            {
-                var types = item.GetGenericArguments();
-                var message = types[0];
-                var response = types[1];
-                var handlerInterface = handlerType.MakeGenericType(types);
+    internal static void AddResponseHandler(this IServiceCollection services,
+        MediatorCoreOptions options, Type handler, Type? handlerType = null)
+    {
+        handlerType ??= typeof(IResponseHandler<,>);
+        var handlerInterfaces = handler.GetInterfaces()
+            .Where(x => x.IsGenericType && x.GetGenericTypeDefinition() == handlerType);
 
-                if (services.Any(x => x.ServiceType == handlerInterface && x.ImplementationType == handler))
-                    continue;
+        foreach (var item in handlerInterfaces)
+        {
+            var types = item.GetGenericArguments();
+            var message = types[0];
+            var response = types[1];
+            var handlerInterface = handlerType.MakeGenericType(types);
 
-                services.Add(new ServiceDescriptor(handlerInterface,
-                    handler,
-                    options.HandlersLifetime));
+            if (services.Any(x => x.ServiceType == handlerInterface && x.ImplementationType == handler))
+                continue;
 
-                var wrapperType = typeof(ResponseHandlerWrapper<,>).MakeGenericType(message, response);
-                var wrapper = Activator.CreateInstance(wrapperType);
-                responseHandlers!.TryAdd(message, wrapper);
-            }
+            services.Add(new ServiceDescriptor(handlerInterface,
+                handler,
+                options.HandlersLifetime));
+
+            var wrapperType = typeof(ResponseHandlerWrapper<,>).MakeGenericType(message, response);
+            var wrapper = Activator.CreateInstance(wrapperType);
+            responseHandlers!.TryAdd(message, wrapper);
         }
     }
 }
+
 
 internal abstract class BaseResponseHandlerWrapper<TResponse>
 {

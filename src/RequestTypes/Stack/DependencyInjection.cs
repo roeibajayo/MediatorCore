@@ -14,32 +14,39 @@ internal static class DependencyInjection
         var handlers = AssemblyExtentions.GetAllInherits(assemblies, handlerType);
         foreach (var handler in handlers)
         {
-            var handlerInterfaces = handler.GetInterfaces()
-                .Where(x => x.IsGenericType && x.GetGenericTypeDefinition() == handlerType);
+            services.AddStackHandler(options, handler, handlerType);
+        }
+    }
 
-            foreach (var item in handlerInterfaces)
-            {
-                var args = item.GetGenericArguments();
-                var messageType = args[0];
-                var optionsType = args[1];
+    internal static void AddStackHandler(this IServiceCollection services,
+        MediatorCoreOptions options, Type handler, Type? handlerType = null)
+    {
+        handlerType ??= typeof(IStackHandler<,>);
+        var handlerInterfaces = handler.GetInterfaces()
+            .Where(x => x.IsGenericType && x.GetGenericTypeDefinition() == handlerType);
 
-                var handlerInterface = typeof(IBaseStackHandler<>)
-                    .MakeGenericType(messageType);
+        foreach (var item in handlerInterfaces)
+        {
+            var args = item.GetGenericArguments();
+            var messageType = args[0];
+            var optionsType = args[1];
 
-                if (services.Any(x => x.ServiceType == handlerInterface && x.ImplementationType == handler))
-                    continue;
+            var handlerInterface = typeof(IBaseStackHandler<>)
+                .MakeGenericType(messageType);
 
-                var serviceType = typeof(StackBackgroundService<,>)
-                    .MakeGenericType(messageType, optionsType);
-                var serviceInterface = typeof(IStackBackgroundService<>)
-                    .MakeGenericType(messageType);
+            if (services.Any(x => x.ServiceType == handlerInterface && x.ImplementationType == handler))
+                continue;
 
-                services.AddSingleton(serviceInterface, serviceType);
-                services.AddSingleton(s => s.GetRequiredService(serviceInterface) as IHostedService);
-                services.Add(new ServiceDescriptor(handlerInterface,
-                    handler,
-                    options.HandlersLifetime));
-            }
+            var serviceType = typeof(StackBackgroundService<,>)
+                .MakeGenericType(messageType, optionsType);
+            var serviceInterface = typeof(IStackBackgroundService<>)
+                .MakeGenericType(messageType);
+
+            services.AddSingleton(serviceInterface, serviceType);
+            services.AddSingleton(s => s.GetRequiredService(serviceInterface) as IHostedService);
+            services.Add(new ServiceDescriptor(handlerInterface,
+                handler,
+                options.HandlersLifetime));
         }
     }
 }

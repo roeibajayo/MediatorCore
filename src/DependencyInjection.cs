@@ -17,6 +17,35 @@ namespace Microsoft.Extensions.DependencyInjection;
 public static class DependencyInjection
 {
     /// <summary>
+    /// Add MediatorCore specific handler of <typeparamref name="THandler"/> type.
+    /// </summary>
+    /// <param name="services"></param>
+    /// <param name="options">Global MediatorCore configuration (Optional).</param>
+    /// <returns>The original <paramref name="services"/>.</returns>
+    public static IServiceCollection AddMediatorCoreHandler<THandler>(this IServiceCollection services,
+        Action<MediatorCoreOptions>? options = null)
+    {
+        var optionsInstance = new MediatorCoreOptions();
+        options?.Invoke(optionsInstance);
+
+        services.TryAddSingleton<IPublisher, MessageBusPublisher>();
+
+        var handler = typeof(THandler);
+
+        services.AddAccumulatorQueueHandler(optionsInstance, handler);
+        services.AddBubblingNotificationHandler(optionsInstance, handler);
+        services.AddDebounceQueueHandler(optionsInstance, handler);
+        services.AddNotificationHandler(optionsInstance, handler);
+        services.AddQueueHandler(optionsInstance, handler);
+        services.AddRequestHandler(optionsInstance, handler);
+        services.AddResponseHandler(optionsInstance, handler);
+        services.AddStackHandler(optionsInstance, handler);
+        services.AddThrottlingQueueHandler(optionsInstance, handler);
+
+        return services;
+    }
+
+    /// <summary>
     /// Add MediatorCore services from assembly that contains the <typeparamref name="TMarker"/> type.
     /// </summary>
     /// <typeparam name="TMarker">Marker of the assembly to register services from</typeparam>

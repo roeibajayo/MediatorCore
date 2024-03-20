@@ -14,32 +14,39 @@ internal static class DependencyInjection
         var handlers = AssemblyExtentions.GetAllInherits(assemblies, handlerType);
         foreach (var handler in handlers)
         {
-            var handlerInterfaces = handler.GetInterfaces()
-                .Where(x => x.IsGenericType && x.GetGenericTypeDefinition() == handlerType);
+            services.AddAccumulatorQueueHandler(options, handler, handlerType);
+        }
+    }
 
-            foreach (var item in handlerInterfaces)
-            {
-                var args = item.GetGenericArguments();
-                var messageType = args[0];
-                var optionsType = args[1];
+    internal static void AddAccumulatorQueueHandler(this IServiceCollection services,
+        MediatorCoreOptions options, Type handler, Type? handlerType = null)
+    {
+        handlerType ??= typeof(IAccumulatorQueueHandler<,>);
+        var handlerInterfaces = handler.GetInterfaces()
+            .Where(x => x.IsGenericType && x.GetGenericTypeDefinition() == handlerType);
 
-                var handlerInterface = typeof(IBaseAccumulatorQueue<>)
-                    .MakeGenericType(messageType);
+        foreach (var item in handlerInterfaces)
+        {
+            var args = item.GetGenericArguments();
+            var messageType = args[0];
+            var optionsType = args[1];
 
-                if (services.Any(x => x.ServiceType == handlerInterface && x.ImplementationType == handler))
-                    continue;
+            var handlerInterface = typeof(IBaseAccumulatorQueue<>)
+                .MakeGenericType(messageType);
 
-                var serviceType = typeof(AccumulatorQueueBackgroundService<,>)
-                    .MakeGenericType(messageType, optionsType);
-                var serviceInterface = typeof(IAccumulatorQueueBackgroundService<>)
-                    .MakeGenericType(messageType);
-                services.AddSingleton(serviceInterface, serviceType);
-                services.AddSingleton(s => s.GetRequiredService(serviceInterface) as IHostedService);
+            if (services.Any(x => x.ServiceType == handlerInterface && x.ImplementationType == handler))
+                continue;
 
-                services.Add(new ServiceDescriptor(handlerInterface,
-                    handler,
-                    options.HandlersLifetime));
-            }
+            var serviceType = typeof(AccumulatorQueueBackgroundService<,>)
+                .MakeGenericType(messageType, optionsType);
+            var serviceInterface = typeof(IAccumulatorQueueBackgroundService<>)
+                .MakeGenericType(messageType);
+            services.AddSingleton(serviceInterface, serviceType);
+            services.AddSingleton(s => s.GetRequiredService(serviceInterface) as IHostedService);
+
+            services.Add(new ServiceDescriptor(handlerInterface,
+                handler,
+                options.HandlersLifetime));
         }
     }
 }

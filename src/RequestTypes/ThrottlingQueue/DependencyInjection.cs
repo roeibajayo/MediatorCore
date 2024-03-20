@@ -14,31 +14,39 @@ internal static class DependencyInjection
         var handlers = AssemblyExtentions.GetAllInherits(assemblies, handlerType);
         foreach (var handler in handlers)
         {
-            var handlerInterfaces = handler.GetInterfaces()
-                .Where(x => x.IsGenericType && x.GetGenericTypeDefinition() == handlerType);
+            services.AddThrottlingQueueHandler(options, handler, handlerType);
+        }
+    }
 
-            foreach (var item in handlerInterfaces)
-            {
-                var args = item.GetGenericArguments();
-                var messageType = args[0];
-                var optionsType = args[1];
-                var handlerInterface = typeof(IBaseThrottlingQueueHandler<>)
-                    .MakeGenericType(messageType);
+    internal static void AddThrottlingQueueHandler(this IServiceCollection services,
+        MediatorCoreOptions options, Type handler, Type? handlerType = null)
+    {
+        handlerType ??= typeof(IThrottlingQueueHandler<,>);
 
-                if (services.Any(x => x.ServiceType == handlerInterface && x.ImplementationType == handler))
-                    continue;
+        var handlerInterfaces = handler.GetInterfaces()
+            .Where(x => x.IsGenericType && x.GetGenericTypeDefinition() == handlerType);
 
-                var serviceType = typeof(ThrottlingQueueBackgroundService<,>)
-                    .MakeGenericType(messageType, optionsType);
-                var serviceInterface = typeof(IThrottlingQueueBackgroundService<>)
-                    .MakeGenericType(messageType);
-                services.AddSingleton(serviceInterface, serviceType);
-                services.AddSingleton(s => s.GetRequiredService(serviceInterface) as IHostedService);
+        foreach (var item in handlerInterfaces)
+        {
+            var args = item.GetGenericArguments();
+            var messageType = args[0];
+            var optionsType = args[1];
+            var handlerInterface = typeof(IBaseThrottlingQueueHandler<>)
+                .MakeGenericType(messageType);
 
-                services.Add(new ServiceDescriptor(handlerInterface,
-                    handler,
-                    options.HandlersLifetime));
-            }
+            if (services.Any(x => x.ServiceType == handlerInterface && x.ImplementationType == handler))
+                continue;
+
+            var serviceType = typeof(ThrottlingQueueBackgroundService<,>)
+                .MakeGenericType(messageType, optionsType);
+            var serviceInterface = typeof(IThrottlingQueueBackgroundService<>)
+                .MakeGenericType(messageType);
+            services.AddSingleton(serviceInterface, serviceType);
+            services.AddSingleton(s => s.GetRequiredService(serviceInterface) as IHostedService);
+
+            services.Add(new ServiceDescriptor(handlerInterface,
+                handler,
+                options.HandlersLifetime));
         }
     }
 }
