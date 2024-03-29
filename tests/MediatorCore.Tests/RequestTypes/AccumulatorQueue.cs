@@ -1,4 +1,3 @@
-using MediatorCore.RequestTypes.AccumulatorQueue;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 
@@ -35,14 +34,7 @@ public class AccumulatorQueue : BaseUnitTest
     }
 }
 
-public class SimpleAccumulatorQueueOptions :
-    IAccumulatorQueueOptions
-{
-    public int MsInterval => 500;
-    public int? AccumulationCapacity => null;
-    public int? TotalCapacity => null;
-    public MaxCapacityBehaviors? MaxTotalCapacityBehavior => null;
-}
+public record SimpleAccumulatorQueueOptions() : AccumulatorQueueOptions(500);
 public record SimpleAccumulatorQueueMessage(int Id) : IAccumulatorQueueMessage;
 public class SimpleAccumulatorQueueMessageHandler :
     IAccumulatorQueueHandler<SimpleAccumulatorQueueMessage, SimpleAccumulatorQueueOptions>
@@ -56,11 +48,11 @@ public class SimpleAccumulatorQueueMessageHandler :
 
     public Task HandleAsync(IEnumerable<SimpleAccumulatorQueueMessage> messages)
     {
-        logger.LogDebug("SimpleAccumulatorQueueCount: {count}", messages.Count());
+        logger.LogDebug("SimpleAccumulatorQueueCount: " +  messages.Count());
 
         foreach (var message in messages)
         {
-            logger.LogDebug("SimpleAccumulatorQueueMessage: {id}", message.Id);
+            logger.LogDebug("SimpleAccumulatorQueueMessage: " +  message.Id);
         }
         return Task.CompletedTask;
     }

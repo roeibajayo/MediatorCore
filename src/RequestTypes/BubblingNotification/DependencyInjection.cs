@@ -11,7 +11,7 @@ internal static class DependencyInjection
     {
         var handlerType = typeof(IBubblingNotificationHandler<,>);
         var handlers = AssemblyExtentions.GetAllInherits(assemblies, handlerType);
-        var orders = new Dictionary<Type, List<(Type, IBubblingNotificationOptions)>>();
+        var orders = new Dictionary<Type, List<(Type, BubblingNotificationOptions)>>();
         foreach (var handler in handlers)
         {
             var handlerInterfaces = handler.GetInterfaces()
@@ -24,7 +24,7 @@ internal static class DependencyInjection
 
                 var messageType = handlerArgs[0];
                 var optionsType = handlerArgs[1];
-                var notificationOptions = Activator.CreateInstance(optionsType) as IBubblingNotificationOptions;
+                var notificationOptions = Activator.CreateInstance(optionsType) as BubblingNotificationOptions;
 
                 if (orders.TryGetValue(messageType, out var list))
                 {
@@ -67,7 +67,7 @@ internal static class DependencyInjection
 
             var messageType = handlerArgs[0];
             var optionsType = handlerArgs[1];
-            var notificationOptions = Activator.CreateInstance(optionsType) as IBubblingNotificationOptions;
+            var notificationOptions = Activator.CreateInstance(optionsType) as BubblingNotificationOptions;
             var serviceInterface = typeof(IBaseBubblingNotification<>).MakeGenericType(messageType);
             var alreadyRegistred = services
                 .Where(x => x.ServiceType.IsGenericType && x.ServiceType == serviceInterface)
@@ -83,7 +83,7 @@ internal static class DependencyInjection
                 .Concat([handler])
                 .ToArray();
 
-            foreach (var found in orders.OrderBy(x => (Activator.CreateInstance(x!) as IBubblingNotificationOptions)!.Sort))
+            foreach (var found in orders.OrderBy(x => (Activator.CreateInstance(x!) as BubblingNotificationOptions)!.Sort))
             {
                 services.Add(new ServiceDescriptor(handlerInterface,
                     found!,

@@ -19,8 +19,8 @@ High-performance yet easy to use mediator pattern and in-process message bus imp
 - Request with response `IResponseHandler<,>`
 - Notification (parallel execution) `INotificationHandler<>`
 - Bubbling notification `IBubblingNotificationHandler<,>`
-- Queue `IQueueHandler<,>`
-- Stack `IStackHandler<,>`
+- Queue `IQueueHandler<>` or with options `IQueueHandler<,>`
+- Stack `IStackHandler<>` or with options `IStackHandler<,>`
 - Debounce queue `IDebounceQueueHandler<,>`
 - Throttling queue `IThrottlingQueueHandler<,>`
 - Accumulator queue `IAccumulatorQueueHandler<,>`

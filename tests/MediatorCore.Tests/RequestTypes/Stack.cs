@@ -30,15 +30,8 @@ public class Stack : BaseUnitTest
     }
 }
 
-public class SimpleStackHandlerOptions : IStackOptions
-{
-    public int? Capacity => default;
-
-    public MaxCapacityBehaviors? MaxCapacityBehavior => default;
-}
-
 public record SimpleStackMessage(int Id) : IStackMessage;
-public class SimpleStackMessageHandler : IStackHandler<SimpleStackMessage, SimpleStackHandlerOptions>
+public class SimpleStackMessageHandler : IStackHandler<SimpleStackMessage>
 {
     public readonly ILogger logger;
 

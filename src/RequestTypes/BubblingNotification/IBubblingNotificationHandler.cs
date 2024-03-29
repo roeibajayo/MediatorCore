@@ -15,7 +15,7 @@ namespace MediatorCore
     public interface IBubblingNotificationHandler<TMessage, TBubblingNotificationOptions> :
         IBaseBubblingNotification<TMessage>
         where TMessage : IBubblingNotificationMessage
-        where TBubblingNotificationOptions : IBubblingNotificationOptions, new()
+        where TBubblingNotificationOptions : BubblingNotificationOptions, new()
     {
     }
 }

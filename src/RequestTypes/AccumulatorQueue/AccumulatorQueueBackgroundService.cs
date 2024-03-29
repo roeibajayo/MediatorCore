@@ -14,7 +14,7 @@ internal sealed class AccumulatorQueueBackgroundService<TMessage, TOptions>(ISer
     IntervalBackgroundService(options.MsInterval),
     IAccumulatorQueueBackgroundService<TMessage>
     where TMessage : IAccumulatorQueueMessage
-    where TOptions : IAccumulatorQueueOptions, new()
+    where TOptions : AccumulatorQueueOptions, new()
 {
     private readonly ConcurrentQueue<TMessage> queue = new();
 
@@ -74,8 +74,7 @@ internal sealed class AccumulatorQueueBackgroundService<TMessage, TOptions>(ISer
 
             if (options.TotalCapacity == currentMessages)
             {
-                if (options.MaxTotalCapacityBehavior is null ||
-                    options.MaxTotalCapacityBehavior == MaxCapacityBehaviors.Wait)
+                if (options.MaxTotalCapacityBehavior == MaxCapacityBehaviors.Wait)
                 {
                     while (!cancellationToken.IsCancellationRequested && queue.Count == options.TotalCapacity)
                     {

@@ -73,11 +73,7 @@ public class BubblingNotification : BaseUnitTest
 
 public record SharedBubblingNotificationMessage(string Id, bool Bubble) : IBubblingNotificationMessage;
 
-public class BubblingNotification1Options
-    : IBubblingNotificationOptions
-{
-    public int Sort => 1;
-}
+public record BubblingNotification1Options() : BubblingNotificationOptions(1);
 public class BubblingNotification1Handler : IBubblingNotificationHandler<SharedBubblingNotificationMessage, BubblingNotification1Options>
 {
     public readonly ILogger logger;
@@ -94,11 +90,7 @@ public class BubblingNotification1Handler : IBubblingNotificationHandler<SharedB
     }
 }
 
-public class BubblingNotification2Options
-    : IBubblingNotificationOptions
-{
-    public int Sort => 2;
-}
+public record BubblingNotification2Options() : BubblingNotificationOptions(2);
 public class BubblingNotification2Handler : IBubblingNotificationHandler<SharedBubblingNotificationMessage, BubblingNotification2Options>
 {
     public readonly ILogger logger;

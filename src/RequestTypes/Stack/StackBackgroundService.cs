@@ -13,7 +13,7 @@ internal sealed class StackBackgroundService<TMessage, TOptions>(IServiceScopeFa
     IStackBackgroundService<TMessage>,
     IHostedService
     where TMessage : IStackMessage
-    where TOptions : IStackOptions, new()
+    where TOptions : StackOptions, new()
 {
     private readonly ConcurrentStack<TMessage> stack = new();
 
@@ -30,8 +30,7 @@ internal sealed class StackBackgroundService<TMessage, TOptions>(IServiceScopeFa
 
             if (options.Capacity == currentMessages)
             {
-                if (options.MaxCapacityBehavior is null ||
-                    options.MaxCapacityBehavior == MaxCapacityBehaviors.Wait)
+                if (options.MaxCapacityBehavior == MaxCapacityBehaviors.Wait)
                 {
                     while (!cancellationToken.IsCancellationRequested && stack.Count == options.Capacity)
                     {

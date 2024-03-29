@@ -1,4 +1,3 @@
-using MediatorCore.RequestTypes.Queue;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 
@@ -30,15 +29,8 @@ public class Queue : BaseUnitTest
     }
 }
 
-public class SimpleQueueHandlerOptions : IQueueOptions
-{
-    public int? Capacity => default;
-
-    public MaxCapacityBehaviors? MaxCapacityBehavior => default;
-}
-
 public record SimpleQueueMessage(int Id) : IQueueMessage;
-public class SimpleQueueMessageHandler : IQueueHandler<SimpleQueueMessage, SimpleQueueHandlerOptions>
+public class SimpleQueueMessageHandler : IQueueHandler<SimpleQueueMessage>
 {
     public readonly ILogger logger;
 

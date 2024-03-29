@@ -1,14 +1,7 @@
 ﻿namespace MediatorCore.Benchmarks.RequestTypes;
 
-public class StackOptions : IStackOptions
-{
-    public int? Capacity => default;
-
-    public MaxCapacityBehaviors? MaxCapacityBehavior => default;
-}
-
 public record StackMessage(int Id) : IStackMessage;
-public class StackHandler : IStackHandler<StackMessage, StackOptions>
+public class StackHandler : IStackHandler<StackMessage>
 {
     public async Task HandleAsync(StackMessage message)
     {

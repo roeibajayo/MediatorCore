@@ -1,14 +1,7 @@
 ﻿namespace MediatorCore.Benchmarks.RequestTypes;
 
-public class QueueOptions : IQueueOptions
-{
-    public int? Capacity => default;
-
-    public MaxCapacityBehaviors? MaxCapacityBehavior => default;
-}
-
 public record QueueMessage(int Id) : IQueueMessage;
-public class QueueHandler : IQueueHandler<QueueMessage, QueueOptions>
+public class QueueHandler : IQueueHandler<QueueMessage>
 {
     public async Task HandleAsync(QueueMessage message)
     {

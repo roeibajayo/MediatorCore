@@ -18,7 +18,12 @@ namespace MediatorCore
     public interface IQueueHandler<TMessage, TOptions> :
         IBaseQueueHandler<TMessage>
         where TMessage : IQueueMessage
-        where TOptions : IQueueOptions, new()
+        where TOptions : QueueOptions, new()
+    {
+    }
+
+    public interface IQueueHandler<TMessage> : IQueueHandler<TMessage, DefaultQueueOptions>
+        where TMessage : IQueueMessage
     {
     }
 }

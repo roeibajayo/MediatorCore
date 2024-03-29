@@ -13,7 +13,7 @@ internal sealed class QueueBackgroundService<TMessage, TOptions> :
     IQueueBackgroundService<TMessage>,
     IHostedService
     where TMessage : IQueueMessage
-    where TOptions : IQueueOptions
+    where TOptions : QueueOptions
 {
     private readonly IServiceScopeFactory serviceScopeFactory;
     private readonly Channel<TMessage> queue;

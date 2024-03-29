@@ -18,7 +18,7 @@ namespace MediatorCore
     public interface IAccumulatorQueueHandler<TMessage, TOptions> :
         IBaseAccumulatorQueue<TMessage>
         where TMessage : IAccumulatorQueueMessage
-        where TOptions : class, IAccumulatorQueueOptions, new()
+        where TOptions : AccumulatorQueueOptions, new()
     {
     }
 }

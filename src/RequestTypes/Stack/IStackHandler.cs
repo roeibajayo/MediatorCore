@@ -18,7 +18,12 @@ namespace MediatorCore
     public interface IStackHandler<TMessage, TOptions> :
         IBaseStackHandler<TMessage>
         where TMessage : IStackMessage
-        where TOptions : IStackOptions, new()
+        where TOptions : StackOptions, new()
+    {
+    }
+
+    public interface IStackHandler<TMessage> : IStackHandler<TMessage, DefaultStackOptions>
+        where TMessage : IStackMessage
     {
     }
 }
