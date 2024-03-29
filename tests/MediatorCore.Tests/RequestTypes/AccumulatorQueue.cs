@@ -1,3 +1,4 @@
+using MediatorCore.RequestTypes.AccumulatorQueue;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 
@@ -55,11 +56,11 @@ public class SimpleAccumulatorQueueMessageHandler :
 
     public Task HandleAsync(IEnumerable<SimpleAccumulatorQueueMessage> messages)
     {
-        logger.LogDebug("SimpleAccumulatorQueueCount: " + messages.Count());
+        logger.LogDebug("SimpleAccumulatorQueueCount: {count}", messages.Count());
 
         foreach (var message in messages)
         {
-            logger.LogDebug("SimpleAccumulatorQueueMessage: " + message.Id);
+            logger.LogDebug("SimpleAccumulatorQueueMessage: {id}", message.Id);
         }
         return Task.CompletedTask;
     }

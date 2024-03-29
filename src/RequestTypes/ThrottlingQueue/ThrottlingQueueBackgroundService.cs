@@ -1,5 +1,4 @@
-﻿using MediatorCore.Exceptions;
-using MediatorCore.Infrastructure;
+﻿using MediatorCore.Infrastructure;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 
@@ -11,32 +10,22 @@ internal interface IThrottlingQueueBackgroundService<TMessage>
 {
     ValueTask EnqueueAsync(TMessage item, CancellationToken cancellationToken);
 }
-internal sealed class ThrottlingQueueBackgroundService<TMessage, TOptions> :
+internal sealed class ThrottlingQueueBackgroundService<TMessage, TOptions>(IServiceScopeFactory serviceScopeFactory, TOptions options) :
     IThrottlingQueueBackgroundService<TMessage>,
     IHostedService
     where TMessage : IThrottlingQueueMessage
     where TOptions : IThrottlingQueueOptions, new()
 {
-    private readonly LockingThrottlingQueue<TMessage> queue;
-    private readonly IServiceScopeFactory serviceScopeFactory;
-    private readonly TOptions options;
-    private bool running = true;
+    private readonly LockingThrottlingQueue<TMessage> queue = new(options.ThrottlingTimeSpans);
 
     public ThrottlingQueueBackgroundService(IServiceScopeFactory serviceScopeFactory) :
         this(serviceScopeFactory, GetOptions())
     {
     }
 
-    public ThrottlingQueueBackgroundService(IServiceScopeFactory serviceScopeFactory, TOptions options)
-    {
-        this.serviceScopeFactory = serviceScopeFactory;
-        this.options = options;
-        queue = new(options.ThrottlingTimeSpans);
-    }
-
     public async Task StartAsync(CancellationToken cancellationToken)
     {
-        while (!cancellationToken.IsCancellationRequested && running)
+        while (!cancellationToken.IsCancellationRequested)
         {
             var (success, messages) = await queue.TryDequeueAsync(cancellationToken);
 
@@ -49,7 +38,6 @@ internal sealed class ThrottlingQueueBackgroundService<TMessage, TOptions> :
 
     public Task StopAsync(CancellationToken cancellationToken)
     {
-        running = false;
         queue.Dispose();
         return Task.CompletedTask;
     }

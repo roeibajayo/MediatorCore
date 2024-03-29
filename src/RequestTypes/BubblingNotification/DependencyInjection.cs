@@ -1,6 +1,5 @@
 ﻿using MediatorCore.Infrastructure;
 using Microsoft.Extensions.DependencyInjection;
-using Microsoft.Extensions.DependencyInjection.Extensions;
 using System.Reflection;
 
 namespace MediatorCore.RequestTypes.BubblingNotification;
@@ -87,7 +86,7 @@ internal static class DependencyInjection
             foreach (var found in orders.OrderBy(x => (Activator.CreateInstance(x!) as IBubblingNotificationOptions)!.Sort))
             {
                 services.Add(new ServiceDescriptor(handlerInterface,
-                    found,
+                    found!,
                     options.HandlersLifetime));
             }
         }

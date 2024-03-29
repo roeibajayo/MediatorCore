@@ -9,26 +9,17 @@ internal interface IStackBackgroundService<TMessage>
 {
     ValueTask PushAsync(TMessage item, CancellationToken cancellationToken);
 }
-internal sealed class StackBackgroundService<TMessage, TOptions> :
+internal sealed class StackBackgroundService<TMessage, TOptions>(IServiceScopeFactory serviceScopeFactory, TOptions options) :
     IStackBackgroundService<TMessage>,
     IHostedService
     where TMessage : IStackMessage
     where TOptions : IStackOptions, new()
 {
-    private readonly IServiceScopeFactory serviceScopeFactory;
-    private readonly TOptions options;
     private readonly ConcurrentStack<TMessage> stack = new();
-    private readonly object locker = new();
-    private bool running = false;
 
     public StackBackgroundService(IServiceScopeFactory serviceScopeFactory) :
         this(serviceScopeFactory, GetOptions())
     {
-    }
-    public StackBackgroundService(IServiceScopeFactory serviceScopeFactory, TOptions options)
-    {
-        this.serviceScopeFactory = serviceScopeFactory;
-        this.options = options;
     }
 
     public async ValueTask PushAsync(TMessage message, CancellationToken cancellationToken)
@@ -59,19 +50,9 @@ internal sealed class StackBackgroundService<TMessage, TOptions> :
 
     internal async void TryProcessMessage()
     {
-        TMessage item;
-
-        lock (locker)
+        if (!stack.TryPop(out TMessage? item))
         {
-            if (running)
-                return;
-
-            if (!stack.TryPop(out item))
-            {
-                return;
-            }
-
-            running = true;
+            return;
         }
 
         await ProcessMessage(item);
@@ -100,11 +81,6 @@ internal sealed class StackBackgroundService<TMessage, TOptions> :
         }
         finally
         {
-            lock (locker)
-            {
-                running = false;
-            }
-
             TryProcessMessage();
         }
     }

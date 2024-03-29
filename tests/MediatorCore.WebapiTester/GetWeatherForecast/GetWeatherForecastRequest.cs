@@ -1,4 +1,6 @@
-﻿namespace MediatorCore.WebapiTester.GetWeatherForcast;
+﻿using MediatorCore.RequestTypes.Response;
 
-public record GetWeatherForecastRequest(int From, int To) : 
+namespace MediatorCore.WebapiTester.GetWeatherForecast;
+
+public record GetWeatherForecastRequest(int From, int To) :
     IResponseMessage<IEnumerable<WeatherForecast>>;

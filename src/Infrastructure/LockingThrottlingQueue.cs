@@ -215,7 +215,7 @@ internal sealed class LockingThrottlingQueue<T> : IDisposable
         }
 
         var items = count <= 0 ?
-            new() :
+            [] :
             DequeueItems(count);
         return items;
     }

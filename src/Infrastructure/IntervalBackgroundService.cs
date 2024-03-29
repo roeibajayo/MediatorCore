@@ -2,15 +2,10 @@
 
 namespace MediatorCore.Infrastructure;
 
-internal abstract class IntervalBackgroundService : IHostedService
+internal abstract class IntervalBackgroundService(int msInterval) : IHostedService
 {
-    protected IntervalBackgroundService(int msInterval)
-    {
-        Interval = msInterval;
-    }
-
-    internal int Interval { get; }
-    internal bool IsRunning { get; private set;}
+    internal int Interval { get; } = msInterval;
+    internal bool IsRunning { get; private set; }
 
     public Task StartAsync(CancellationToken cancellationToken)
     {

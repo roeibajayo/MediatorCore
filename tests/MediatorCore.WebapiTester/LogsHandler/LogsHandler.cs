@@ -1,5 +1,5 @@
 namespace MediatorCore.WebapiTester.LogsHandler;
-public class LogsHandler : 
+public class LogsHandler :
     IAccumulatorQueueHandler<LogMessage, LogsHandlerOptions>
 {
     private readonly ILogger<LogsHandler> logger;

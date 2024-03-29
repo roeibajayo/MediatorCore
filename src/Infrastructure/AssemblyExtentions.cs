@@ -11,8 +11,8 @@ internal static class AssemblyExtentions
         return GetAllInherits([marker.Assembly], type, ignoreAbstract, directBaseTypeOnly);
     }
 
-    internal static IEnumerable<Type> GetAllInherits(IEnumerable<Assembly> assemblies, Type type, 
-        bool ignoreAbstract = true, 
+    internal static IEnumerable<Type> GetAllInherits(IEnumerable<Assembly> assemblies, Type type,
+        bool ignoreAbstract = true,
         bool directBaseTypeOnly = false)
     {
         return assemblies

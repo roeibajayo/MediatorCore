@@ -1,4 +1,4 @@
-using MediatorCore.WebapiTester.GetWeatherForcast;
+using MediatorCore.WebapiTester.GetWeatherForecast;
 using Microsoft.AspNetCore.Mvc;
 
 namespace MediatorCore.WebapiTester.Controllers

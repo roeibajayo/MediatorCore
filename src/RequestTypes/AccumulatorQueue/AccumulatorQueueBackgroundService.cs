@@ -1,5 +1,4 @@
-﻿using MediatorCore.Exceptions;
-using MediatorCore.Infrastructure;
+﻿using MediatorCore.Infrastructure;
 using Microsoft.Extensions.DependencyInjection;
 using System.Collections.Concurrent;
 
@@ -11,27 +10,17 @@ internal interface IAccumulatorQueueBackgroundService<TMessage>
 {
     ValueTask EnqueueAsync(TMessage item, CancellationToken cancellationToken);
 }
-internal sealed class AccumulatorQueueBackgroundService<TMessage, TOptions> :
-    IntervalBackgroundService,
+internal sealed class AccumulatorQueueBackgroundService<TMessage, TOptions>(IServiceScopeFactory serviceScopeFactory, TOptions options) :
+    IntervalBackgroundService(options.MsInterval),
     IAccumulatorQueueBackgroundService<TMessage>
     where TMessage : IAccumulatorQueueMessage
     where TOptions : IAccumulatorQueueOptions, new()
 {
-    private readonly ConcurrentQueue<TMessage> queue;
-    private readonly IServiceScopeFactory serviceScopeFactory;
-    private readonly TOptions options;
+    private readonly ConcurrentQueue<TMessage> queue = new();
 
     public AccumulatorQueueBackgroundService(IServiceScopeFactory serviceScopeFactory) :
         this(serviceScopeFactory, GetOptions())
     {
-    }
-
-    public AccumulatorQueueBackgroundService(IServiceScopeFactory serviceScopeFactory, TOptions options) :
-        base(options.MsInterval)
-    {
-        queue = new ConcurrentQueue<TMessage>();
-        this.serviceScopeFactory = serviceScopeFactory;
-        this.options = options;
     }
 
     protected override Task OnExecuteAsync(CancellationToken cancellationToken)

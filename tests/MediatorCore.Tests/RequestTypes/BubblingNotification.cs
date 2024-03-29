@@ -1,4 +1,4 @@
-using MediatorCore.RequestTypes.Notification;
+using MediatorCore.RequestTypes.BubblingNotification;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 

@@ -1,3 +1,4 @@
+using MediatorCore;
 using MediatorCore.WebapiTester;
 
 var builder = WebApplication.CreateBuilder(args);

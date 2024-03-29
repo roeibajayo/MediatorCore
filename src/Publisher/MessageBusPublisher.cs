@@ -2,15 +2,8 @@
 
 namespace MediatorCore.Publisher;
 
-internal partial class MessageBusPublisher : IPublisher
+internal partial class MessageBusPublisher(IServiceProvider serviceProvider) : IPublisher
 {
-    private readonly IServiceProvider serviceProvider;
-
-    public MessageBusPublisher(IServiceProvider serviceProvider)
-    {
-        this.serviceProvider = serviceProvider;
-    }
-
     public bool TryPublish<TMessage>(TMessage message, CancellationToken cancellationToken = default)
     {
         dynamic handler = this;

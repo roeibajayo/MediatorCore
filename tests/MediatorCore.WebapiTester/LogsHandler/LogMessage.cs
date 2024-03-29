@@ -1,4 +1,6 @@
-﻿namespace MediatorCore.WebapiTester.LogsHandler;
+﻿using MediatorCore.RequestTypes.AccumulatorQueue;
 
-public record LogMessage(string Message) : 
+namespace MediatorCore.WebapiTester.LogsHandler;
+
+public record LogMessage(string Message) :
     IAccumulatorQueueMessage;

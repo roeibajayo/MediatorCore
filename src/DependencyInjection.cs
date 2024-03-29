@@ -55,7 +55,7 @@ public static class DependencyInjection
     public static IServiceCollection AddMediatorCore<TMarker>(this IServiceCollection services,
         Action<MediatorCoreOptions>? options = null)
     {
-        return AddMediatorCore(services, [typeof(TMarker).Assembly], options);
+        return services.AddMediatorCore([typeof(TMarker).Assembly], options);
     }
 
     /// <summary>

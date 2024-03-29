@@ -1,6 +1,8 @@
-﻿namespace MediatorCore.WebapiTester.LogsHandler;
+﻿using MediatorCore.RequestTypes.AccumulatorQueue;
 
-public class LogsHandlerOptions : 
+namespace MediatorCore.WebapiTester.LogsHandler;
+
+public class LogsHandlerOptions :
     IAccumulatorQueueOptions
 {
     public int MsInterval => 2000;

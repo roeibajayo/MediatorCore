@@ -15,7 +15,7 @@ internal partial class MessageBusPublisher : IPublisher
 
         NoRegisteredHandlerException.ThrowIfNull(handler, message.GetType());
 
-        return await ((BaseResponseHandlerWrapper<TResponse>)handler)
+        return await ((BaseResponseHandlerWrapper<TResponse>)handler!)
             .HandleAsync(message, serviceProvider, cancellationToken);
     }
 }

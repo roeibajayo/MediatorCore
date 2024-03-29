@@ -1,6 +1,7 @@
-﻿using MediatorCore.WebapiTester.LogsHandler;
+﻿using MediatorCore.RequestTypes.Response;
+using MediatorCore.WebapiTester.LogsHandler;
 
-namespace MediatorCore.WebapiTester.GetWeatherForcast;
+namespace MediatorCore.WebapiTester.GetWeatherForecast;
 
 public class GetWeatherForecastHandler : IResponseHandler<GetWeatherForecastRequest, IEnumerable<WeatherForecast>>
 {

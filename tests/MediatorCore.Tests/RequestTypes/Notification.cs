@@ -1,3 +1,4 @@
+using MediatorCore.RequestTypes.Notification;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 
