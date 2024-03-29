@@ -1,5 +1,4 @@
-﻿using MediatorCore.Exceptions;
-using Microsoft.Extensions.DependencyInjection;
+﻿using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using System.Collections.Concurrent;
 
@@ -8,7 +7,7 @@ namespace MediatorCore.RequestTypes.Stack;
 internal interface IStackBackgroundService<TMessage>
     where TMessage : IStackMessage
 {
-    void Push(TMessage item);
+    ValueTask PushAsync(TMessage item, CancellationToken cancellationToken);
 }
 internal sealed class StackBackgroundService<TMessage, TOptions> :
     IStackBackgroundService<TMessage>,
@@ -32,19 +31,24 @@ internal sealed class StackBackgroundService<TMessage, TOptions> :
         this.options = options;
     }
 
-    public void Push(TMessage message)
+    public async ValueTask PushAsync(TMessage message, CancellationToken cancellationToken)
     {
-        if (options.MaxMessagesStored is not null)
+        if (options.Capacity is not null)
         {
             var currentMessages = stack.Count;
 
-            if (options.MaxMessagesStored == currentMessages)
+            if (options.Capacity == currentMessages)
             {
-                if (options.MaxMessagesStoredBehavior is null ||
-                    options.MaxMessagesStoredBehavior == MaxMessagesStoredBehaviors.ThrowExceptionOnEnqueue)
-                    MaxMessagesOnQueueException.Throw();
+                if (options.MaxCapacityBehavior is null ||
+                    options.MaxCapacityBehavior == MaxCapacityBehaviors.Wait)
+                {
+                    while (!cancellationToken.IsCancellationRequested && stack.Count == options.Capacity)
+                    {
+                        await Task.Delay(100, cancellationToken);
+                    }
+                }
 
-                if (options.MaxMessagesStoredBehavior == MaxMessagesStoredBehaviors.DiscardEnqueues)
+                if (options.MaxCapacityBehavior == MaxCapacityBehaviors.DropMessage)
                     return;
             }
         }
@@ -118,8 +122,8 @@ internal sealed class StackBackgroundService<TMessage, TOptions> :
     {
         var options = Activator.CreateInstance<TOptions>();
 
-        if (options.MaxMessagesStored is not null && options.MaxMessagesStored < 1)
-            throw new ArgumentOutOfRangeException(nameof(options.MaxMessagesStored));
+        if (options.Capacity is not null && options.Capacity < 1)
+            throw new ArgumentOutOfRangeException(nameof(options.Capacity));
 
         return options;
     }

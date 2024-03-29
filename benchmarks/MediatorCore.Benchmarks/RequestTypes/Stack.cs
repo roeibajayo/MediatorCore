@@ -5,9 +5,9 @@ namespace MediatorCore.Benchmarks.RequestTypes;
 
 public class StackOptions : IStackOptions
 {
-    public int? MaxMessagesStored => default;
+    public int? Capacity => default;
 
-    public MaxMessagesStoredBehaviors? MaxMessagesStoredBehavior => default;
+    public MaxCapacityBehaviors? MaxCapacityBehavior => default;
 }
 
 public record StackMessage(int Id) : IStackMessage;

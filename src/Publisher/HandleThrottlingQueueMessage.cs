@@ -5,11 +5,11 @@ namespace MediatorCore.Publisher;
 
 internal partial class MessageBusPublisher : IPublisher
 {
-    private void HandleThrottlingQueueMessage<TMessage>(TMessage message)
+    private async ValueTask HandleThrottlingQueueMessageAsync<TMessage>(TMessage message, CancellationToken cancellationToken)
         where TMessage : IThrottlingQueueMessage
     {
         var services = serviceProvider.GetServices<IThrottlingQueueBackgroundService<TMessage>>();
         foreach (var service in services)
-            service.Enqueue(message);
+            await service.EnqueueAsync(message, cancellationToken);
     }
 }

@@ -2,6 +2,6 @@
 
 public interface IQueueOptions
 {
-    int? MaxMessagesStored { get; }
-    MaxMessagesStoredBehaviors? MaxMessagesStoredBehavior { get; }
+    int? Capacity { get; }
+    MaxCapacityBehaviors? MaxCapacityBehavior { get; }
 }

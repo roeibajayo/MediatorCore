@@ -1,5 +1,3 @@
-using MediatorCore.RequestTypes.Stack;
-using MediatorCore.RequestTypes.ThrottlingQueue;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 
@@ -33,9 +31,9 @@ public class Stack : BaseUnitTest
 
 public class SimpleStackHandlerOptions : IStackOptions
 {
-    public int? MaxMessagesStored => default;
+    public int? Capacity => default;
 
-    public MaxMessagesStoredBehaviors? MaxMessagesStoredBehavior => default;
+    public MaxCapacityBehaviors? MaxCapacityBehavior => default;
 }
 
 public record SimpleStackMessage(int Id) : IStackMessage;

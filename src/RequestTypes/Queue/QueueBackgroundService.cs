@@ -1,14 +1,13 @@
-﻿using MediatorCore.Exceptions;
-using Microsoft.Extensions.DependencyInjection;
+﻿using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
-using System.Collections.Concurrent;
+using System.Threading.Channels;
 
 namespace MediatorCore.RequestTypes.Queue;
 
 internal interface IQueueBackgroundService<TMessage>
     where TMessage : IQueueMessage
 {
-    void Enqueue(TMessage item);
+    ValueTask EnqueueAsync(TMessage item, CancellationToken cancellationToken);
 }
 internal sealed class QueueBackgroundService<TMessage, TOptions> :
     IQueueBackgroundService<TMessage>,
@@ -17,10 +16,7 @@ internal sealed class QueueBackgroundService<TMessage, TOptions> :
     where TOptions : IQueueOptions
 {
     private readonly IServiceScopeFactory serviceScopeFactory;
-    private readonly TOptions options;
-    private readonly ConcurrentQueue<TMessage> queue = new();
-    private readonly object locker = new();
-    private bool running = false;
+    private readonly Channel<TMessage> queue;
 
     public QueueBackgroundService(IServiceScopeFactory serviceScopeFactory) :
         this(serviceScopeFactory, GetOptions())
@@ -29,48 +25,21 @@ internal sealed class QueueBackgroundService<TMessage, TOptions> :
     public QueueBackgroundService(IServiceScopeFactory serviceScopeFactory, TOptions options)
     {
         this.serviceScopeFactory = serviceScopeFactory;
-        this.options = options;
+        this.queue = options.Capacity is null ?
+            Channel.CreateUnbounded<TMessage>() :
+            Channel.CreateBounded<TMessage>(new BoundedChannelOptions(options.Capacity.Value)
+            {
+                FullMode = options.MaxCapacityBehavior == MaxCapacityBehaviors.DropMessage ?
+                    BoundedChannelFullMode.DropWrite :
+                    BoundedChannelFullMode.Wait,
+                SingleWriter = false,
+                SingleReader = true,
+            });
     }
 
-    public void Enqueue(TMessage message)
+    public async ValueTask EnqueueAsync(TMessage message, CancellationToken cancellationToken)
     {
-        if (options.MaxMessagesStored is not null)
-        {
-            var currentMessages = queue.Count;
-
-            if (options.MaxMessagesStored == currentMessages)
-            {
-                if (options.MaxMessagesStoredBehavior is null ||
-                    options.MaxMessagesStoredBehavior == MaxMessagesStoredBehaviors.ThrowExceptionOnEnqueue)
-                    MaxMessagesOnQueueException.Throw();
-
-                if (options.MaxMessagesStoredBehavior == MaxMessagesStoredBehaviors.DiscardEnqueues)
-                    return;
-            }
-        }
-
-        queue.Enqueue(message);
-        TryProcessMessage();
-    }
-
-    internal async void TryProcessMessage()
-    {
-        TMessage item;
-
-        lock (locker)
-        {
-            if (running)
-                return;
-
-            if (!queue.TryDequeue(out item))
-            {
-                return;
-            }
-
-            running = true;
-        }
-
-        await ProcessMessage(item);
+        await queue.Writer.WriteAsync(message, cancellationToken);
     }
 
     private async Task ProcessMessage(TMessage item)
@@ -80,7 +49,7 @@ internal sealed class QueueBackgroundService<TMessage, TOptions> :
         await ProcessMessage(handler!, 0, item);
     }
 
-    private async Task ProcessMessage(IBaseQueueHandler<TMessage> handler, int retries, TMessage item)
+    private static async Task ProcessMessage(IBaseQueueHandler<TMessage> handler, int retries, TMessage item)
     {
         try
         {
@@ -94,22 +63,17 @@ internal sealed class QueueBackgroundService<TMessage, TOptions> :
             if (exceptionHandler is not null)
                 await exceptionHandler;
         }
-        finally
-        {
-            lock (locker)
-            {
-                running = false;
-            }
+    }
 
-            TryProcessMessage();
+
+    public async Task StartAsync(CancellationToken cancellationToken)
+    {
+        await foreach (var item in queue.Reader.ReadAllAsync(cancellationToken))
+        {
+            await ProcessMessage(item);
         }
     }
 
-
-    public Task StartAsync(CancellationToken cancellationToken)
-    {
-        return Task.CompletedTask;
-    }
     public Task StopAsync(CancellationToken cancellationToken)
     {
         return Task.CompletedTask;
@@ -119,8 +83,8 @@ internal sealed class QueueBackgroundService<TMessage, TOptions> :
     {
         var options = Activator.CreateInstance<TOptions>();
 
-        if (options.MaxMessagesStored is not null && options.MaxMessagesStored < 1)
-            throw new ArgumentOutOfRangeException(nameof(options.MaxMessagesStored));
+        if (options.Capacity is not null && options.Capacity < 1)
+            throw new ArgumentOutOfRangeException(nameof(options.Capacity));
 
         return options;
     }

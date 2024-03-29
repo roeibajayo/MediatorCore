@@ -5,7 +5,7 @@ namespace MediatorCore.Publisher;
 
 internal partial class MessageBusPublisher : IPublisher
 {
-    private async Task HandleBubblingNotificationMessage<TMessage>(TMessage message, CancellationToken cancellationToken)
+    private async ValueTask HandleBubblingNotificationMessageAsync<TMessage>(TMessage message, CancellationToken cancellationToken)
         where TMessage : IBubblingNotificationMessage
     {
         var handlers = serviceProvider.GetServices<IBaseBubblingNotification<TMessage>>();

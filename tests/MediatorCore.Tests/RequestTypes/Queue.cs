@@ -1,5 +1,3 @@
-using MediatorCore.RequestTypes.Queue;
-using MediatorCore.RequestTypes.ThrottlingQueue;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 
@@ -33,9 +31,9 @@ public class Queue : BaseUnitTest
 
 public class SimpleQueueHandlerOptions : IQueueOptions
 {
-    public int? MaxMessagesStored => default;
+    public int? Capacity => default;
 
-    public MaxMessagesStoredBehaviors? MaxMessagesStoredBehavior => default;
+    public MaxCapacityBehaviors? MaxCapacityBehavior => default;
 }
 
 public record SimpleQueueMessage(int Id) : IQueueMessage;

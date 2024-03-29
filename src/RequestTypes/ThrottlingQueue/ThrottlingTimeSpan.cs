@@ -8,12 +8,12 @@
 /// <param name="Fixed">Determines whether the throttling is fixed to round time (eg. 12:00) or not.</param>
 public sealed record ThrottlingWindow(TimeSpan Duration, int PermitLimit, bool Fixed = false)
 {
-    public int PermitLimit { get; } = PermitLimit >= 0 ?
+    internal int PermitLimit { get; } = PermitLimit >= 0 ?
         PermitLimit :
         throw new ArgumentException("PermitLimit cannot be negative.", nameof(PermitLimit));
 
-    public DateTimeOffset GetLastStart() => GetLastStart(DateTimeOffset.Now);
-    public DateTimeOffset GetLastStart(DateTimeOffset relativeTo)
+    internal DateTimeOffset GetLastStart() => GetLastStart(DateTimeOffset.Now);
+    internal DateTimeOffset GetLastStart(DateTimeOffset relativeTo)
     {
         if (Fixed)
         {
@@ -38,8 +38,8 @@ public sealed record ThrottlingWindow(TimeSpan Duration, int PermitLimit, bool F
         }
         return relativeTo - Duration;
     }
-    public DateTimeOffset GetLastEnd() => GetLastEnd(DateTimeOffset.Now);
-    public DateTimeOffset GetLastEnd(DateTimeOffset relativeTo)
+    internal DateTimeOffset GetLastEnd() => GetLastEnd(DateTimeOffset.Now);
+    internal DateTimeOffset GetLastEnd(DateTimeOffset relativeTo)
     {
         return !Fixed ? relativeTo : GetLastStart(relativeTo) + Duration;
     }

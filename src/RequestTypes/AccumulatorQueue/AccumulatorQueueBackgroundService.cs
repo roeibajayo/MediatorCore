@@ -9,7 +9,7 @@ internal interface IAccumulatorQueueBackgroundService<TMessage>
     where TMessage :
     IAccumulatorQueueMessage
 {
-    void Enqueue(TMessage item);
+    ValueTask EnqueueAsync(TMessage item, CancellationToken cancellationToken);
 }
 internal sealed class AccumulatorQueueBackgroundService<TMessage, TOptions> :
     IntervalBackgroundService,
@@ -41,7 +41,7 @@ internal sealed class AccumulatorQueueBackgroundService<TMessage, TOptions> :
 
         var messages = new List<TMessage>(queue.Count);
         while (!cancellationToken.IsCancellationRequested &&
-            (options.MaxMessagesOnDequeue is null || options.MaxMessagesOnDequeue < messages.Count) &&
+            (options.AccumulationCapacity is null || options.AccumulationCapacity < messages.Count) &&
             queue.TryDequeue(out var item))
         {
             messages.Add(item);
@@ -77,19 +77,24 @@ internal sealed class AccumulatorQueueBackgroundService<TMessage, TOptions> :
         }
     }
 
-    public void Enqueue(TMessage item)
+    public async ValueTask EnqueueAsync(TMessage item, CancellationToken cancellationToken)
     {
-        if (options.MaxMessagesStored is not null)
+        if (options.TotalCapacity is not null)
         {
             var currentMessages = queue.Count;
 
-            if (options.MaxMessagesStored == currentMessages)
+            if (options.TotalCapacity == currentMessages)
             {
-                if (options.MaxMessagesStoredBehavior is null ||
-                    options.MaxMessagesStoredBehavior == MaxMessagesStoredBehaviors.ThrowExceptionOnEnqueue)
-                    MaxMessagesOnQueueException.Throw();
+                if (options.MaxTotalCapacityBehavior is null ||
+                    options.MaxTotalCapacityBehavior == MaxCapacityBehaviors.Wait)
+                {
+                    while (!cancellationToken.IsCancellationRequested && queue.Count == options.TotalCapacity)
+                    {
+                        await Task.Delay(100, cancellationToken);
+                    }
+                }
 
-                if (options.MaxMessagesStoredBehavior == MaxMessagesStoredBehaviors.DiscardEnqueues)
+                if (options.MaxTotalCapacityBehavior == MaxCapacityBehaviors.DropMessage)
                     return;
             }
         }
@@ -101,11 +106,11 @@ internal sealed class AccumulatorQueueBackgroundService<TMessage, TOptions> :
     {
         var options = Activator.CreateInstance<TOptions>();
 
-        if (options.MaxMessagesOnDequeue is not null && options.MaxMessagesOnDequeue < 1)
-            throw new ArgumentOutOfRangeException(nameof(options.MaxMessagesOnDequeue));
+        if (options.AccumulationCapacity is not null && options.AccumulationCapacity < 1)
+            throw new ArgumentOutOfRangeException(nameof(options.AccumulationCapacity));
 
-        if (options.MaxMessagesStored is not null && options.MaxMessagesStored < 1)
-            throw new ArgumentOutOfRangeException(nameof(options.MaxMessagesStored));
+        if (options.TotalCapacity is not null && options.TotalCapacity < 1)
+            throw new ArgumentOutOfRangeException(nameof(options.TotalCapacity));
 
         if (options.MsInterval < 100)
             throw new ArgumentException("MsInternal must be aleast 100ms.", nameof(options.MsInterval));

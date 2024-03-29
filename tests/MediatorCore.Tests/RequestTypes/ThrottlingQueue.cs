@@ -1,5 +1,4 @@
-﻿using MediatorCore.RequestTypes.ThrottlingQueue;
-using Microsoft.Extensions.DependencyInjection;
+﻿using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 
 namespace MediatorCore.Tests.RequestTypes;
@@ -62,9 +61,9 @@ public class SimpleThrottlingQueueOptions :
     public ThrottlingWindow[] ThrottlingTimeSpans =>
         new[] { new ThrottlingWindow(TimeSpan.FromMilliseconds(500), 1) };
 
-    public int? MaxMessagesStored => default;
+    public int? Capacity => default;
 
-    public MaxMessagesStoredBehaviors? MaxMessagesStoredBehavior => default;
+    public MaxCapacityBehaviors? MaxCapacityBehavior => default;
 }
 public record SimpleThrottlingQueueMessage(int Id) : IThrottlingQueueMessage;
 public class SimpleThrottlingQueueMessageHandler :

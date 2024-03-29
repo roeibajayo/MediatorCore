@@ -18,19 +18,19 @@ internal partial class MessageBusPublisher : IPublisher
 
         if (message is IAccumulatorQueueMessage)
         {
-            handler.HandleAccumulatorQueueMessage<TMessage>(message);
+            handler.HandleAccumulatorQueueMessageAsync<TMessage>(message, cancellationToken).AsTask().Wait(cancellationToken);
             found = true;
         }
 
         if (message is IQueueMessage)
         {
-            handler.HandleQueueMessage<TMessage>(message);
+            handler.HandleQueueMessageAsync<TMessage>(message, cancellationToken).AsTask().Wait(cancellationToken);
             found = true;
         }
 
         if (message is IStackMessage)
         {
-            handler.HandleStackMessage<TMessage>(message);
+            handler.HandleStackMessageAsync<TMessage>(message, cancellationToken).AsTask().Wait(cancellationToken);
             found = true;
         }
 
@@ -42,25 +42,25 @@ internal partial class MessageBusPublisher : IPublisher
 
         if (message is IRequestMessage)
         {
-            handler.HandleRequestMessage<TMessage>(message, cancellationToken);
+            _ = handler.HandleRequestMessageAsync<TMessage>(message, cancellationToken);
             found = true;
         }
 
         if (message is IBubblingNotificationMessage)
         {
-            handler.HandleBubblingNotificationMessage<TMessage>(message, cancellationToken);
+            _ = handler.HandleBubblingNotificationMessageAsync<TMessage>(message, cancellationToken);
             found = true;
         }
 
         if (message is INotificationMessage)
         {
-            handler.HandleNotificationMessage<TMessage>(message, cancellationToken);
+            _ = handler.HandleNotificationMessageAsync<TMessage>(message, cancellationToken);
             found = true;
         }
 
         if (message is IThrottlingQueueMessage)
         {
-            handler.HandleThrottlingQueueMessage<TMessage>(message);
+            handler.HandleThrottlingQueueMessageAsync<TMessage>(message, cancellationToken).AsTask().Wait(cancellationToken);
             found = true;
         }
 
@@ -74,19 +74,19 @@ internal partial class MessageBusPublisher : IPublisher
 
         if (message is IAccumulatorQueueMessage)
         {
-            handler.HandleAccumulatorQueueMessage<TMessage>(message);
+            await handler.HandleAccumulatorQueueMessageAsync<TMessage>(message, cancellationToken);
             found = true;
         }
 
         if (message is IQueueMessage)
         {
-            handler.HandleQueueMessage<TMessage>(message);
+            await handler.HandleQueueMessageAsync<TMessage>(message, cancellationToken);
             found = true;
         }
 
         if (message is IStackMessage)
         {
-            handler.HandleStackMessage<TMessage>(message);
+            await handler.HandleStackMessageAsync<TMessage>(message, cancellationToken);
             found = true;
         }
 
@@ -98,25 +98,25 @@ internal partial class MessageBusPublisher : IPublisher
 
         if (message is IRequestMessage)
         {
-            await handler.HandleRequestMessage<TMessage>(message, cancellationToken);
+            await handler.HandleRequestMessageAsync<TMessage>(message, cancellationToken);
             found = true;
         }
 
         if (message is IBubblingNotificationMessage)
         {
-            await handler.HandleBubblingNotificationMessage<TMessage>(message, cancellationToken);
+            await handler.HandleBubblingNotificationMessageAsync<TMessage>(message, cancellationToken);
             found = true;
         }
 
         if (message is INotificationMessage)
         {
-            await handler.HandleNotificationMessage<TMessage>(message, cancellationToken);
+            await handler.HandleNotificationMessageAsync<TMessage>(message, cancellationToken);
             found = true;
         }
 
         if (message is IThrottlingQueueMessage)
         {
-            handler.HandleThrottlingQueueMessage<TMessage>(message);
+            await handler.HandleThrottlingQueueMessageAsync<TMessage>(message, cancellationToken);
             found = true;
         }
 

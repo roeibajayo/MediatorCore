@@ -4,7 +4,7 @@ public class LogsHandlerOptions :
     IAccumulatorQueueOptions
 {
     public int MsInterval => 2000;
-    public int? MaxMessagesOnDequeue => default;
-    public int? MaxMessagesStored => default;
-    public MaxMessagesStoredBehaviors? MaxMessagesStoredBehavior => default;
+    public int? AccumulationCapacity => default;
+    public int? TotalCapacity => default;
+    public MaxCapacityBehaviors? MaxTotalCapacityBehavior => default;
 }

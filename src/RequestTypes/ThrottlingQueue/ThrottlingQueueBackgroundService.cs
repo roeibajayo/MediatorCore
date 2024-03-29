@@ -9,7 +9,7 @@ internal interface IThrottlingQueueBackgroundService<TMessage>
     where TMessage :
     IThrottlingQueueMessage
 {
-    void Enqueue(TMessage item);
+    ValueTask EnqueueAsync(TMessage item, CancellationToken cancellationToken);
 }
 internal sealed class ThrottlingQueueBackgroundService<TMessage, TOptions> :
     IThrottlingQueueBackgroundService<TMessage>,
@@ -61,7 +61,7 @@ internal sealed class ThrottlingQueueBackgroundService<TMessage, TOptions> :
         await ProcessMessage(handler!, 0, messages);
     }
 
-    private async Task ProcessMessage(IBaseThrottlingQueueHandler<TMessage> handler, int retries, IEnumerable<TMessage> messages)
+    private static async Task ProcessMessage(IBaseThrottlingQueueHandler<TMessage> handler, int retries, IEnumerable<TMessage> messages)
     {
         try
         {
@@ -77,19 +77,24 @@ internal sealed class ThrottlingQueueBackgroundService<TMessage, TOptions> :
         }
     }
 
-    public void Enqueue(TMessage item)
+    public async ValueTask EnqueueAsync(TMessage item, CancellationToken cancellationToken)
     {
-        if (options.MaxMessagesStored is not null)
+        if (options.Capacity is not null)
         {
             var currentMessages = queue.Count;
 
-            if (options.MaxMessagesStored == currentMessages)
+            if (options.Capacity == currentMessages)
             {
-                if (options.MaxMessagesStoredBehavior is null ||
-                    options.MaxMessagesStoredBehavior == MaxMessagesStoredBehaviors.ThrowExceptionOnEnqueue)
-                    MaxMessagesOnQueueException.Throw();
+                if (options.MaxCapacityBehavior is null ||
+                    options.MaxCapacityBehavior == MaxCapacityBehaviors.Wait)
+                {
+                    while (!cancellationToken.IsCancellationRequested && queue.Count == options.Capacity)
+                    {
+                        await Task.Delay(100, cancellationToken);
+                    }
+                }
 
-                if (options.MaxMessagesStoredBehavior == MaxMessagesStoredBehaviors.DiscardEnqueues)
+                if (options.MaxCapacityBehavior == MaxCapacityBehaviors.DropMessage)
                     return;
             }
         }
@@ -104,8 +109,8 @@ internal sealed class ThrottlingQueueBackgroundService<TMessage, TOptions> :
         if (options.ThrottlingTimeSpans is null || options.ThrottlingTimeSpans.Length == 0)
             throw new ArgumentOutOfRangeException(nameof(options.ThrottlingTimeSpans));
 
-        if (options.MaxMessagesStored is not null && options.MaxMessagesStored < 1)
-            throw new ArgumentOutOfRangeException(nameof(options.MaxMessagesStored));
+        if (options.Capacity is not null && options.Capacity < 1)
+            throw new ArgumentOutOfRangeException(nameof(options.Capacity));
 
         return options;
     }

@@ -4,14 +4,14 @@ namespace MediatorCore.Publisher;
 
 internal partial class MessageBusPublisher : IPublisher
 {
-    private async Task HandleRequestMessage<TMessage>(TMessage message, CancellationToken cancellationToken)
+    private async Task HandleRequestMessageAsync<TMessage>(TMessage message, CancellationToken cancellationToken)
         where TMessage : IRequestMessage
     {
         var handlers = serviceProvider
             .GetServices<IRequestHandler<TMessage>>();
 
         await Task.WhenAll(
-            handlers.Select(handler => HandleRequestMessage(handler, 0, message, cancellationToken)));
+            handlers.Select(handler => HandleRequestMessage(handler, 0, message, cancellationToken))).WaitAsync(cancellationToken);
     }
 
     private async Task HandleRequestMessage<TMessage>(IRequestHandler<TMessage> handler,

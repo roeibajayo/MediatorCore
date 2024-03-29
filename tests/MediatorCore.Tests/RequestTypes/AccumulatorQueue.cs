@@ -1,4 +1,3 @@
-using MediatorCore.RequestTypes.AccumulatorQueue;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 
@@ -39,9 +38,9 @@ public class SimpleAccumulatorQueueOptions :
     IAccumulatorQueueOptions
 {
     public int MsInterval => 500;
-    public int? MaxMessagesOnDequeue => null;
-    public int? MaxMessagesStored => null;
-    public MaxMessagesStoredBehaviors? MaxMessagesStoredBehavior => null;
+    public int? AccumulationCapacity => null;
+    public int? TotalCapacity => null;
+    public MaxCapacityBehaviors? MaxTotalCapacityBehavior => null;
 }
 public record SimpleAccumulatorQueueMessage(int Id) : IAccumulatorQueueMessage;
 public class SimpleAccumulatorQueueMessageHandler :

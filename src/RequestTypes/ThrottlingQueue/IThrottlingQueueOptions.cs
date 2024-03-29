@@ -3,6 +3,6 @@
 public interface IThrottlingQueueOptions
 {
     ThrottlingWindow[] ThrottlingTimeSpans { get; }
-    int? MaxMessagesStored { get; }
-    MaxMessagesStoredBehaviors? MaxMessagesStoredBehavior { get; }
+    int? Capacity { get; }
+    MaxCapacityBehaviors? MaxCapacityBehavior { get; }
 }
