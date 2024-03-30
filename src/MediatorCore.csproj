@@ -6,7 +6,7 @@
     <Nullable>enable</Nullable>
     <SignAssembly>False</SignAssembly>
     <LangVersion>12</LangVersion>
-    <Version>1.7.5</Version>
+    <Version>1.7.6</Version>
     <Authors>roeibajayo</Authors>
     <PackageId>MediatorCore</PackageId>
     <Company>RoeiBajayo</Company>

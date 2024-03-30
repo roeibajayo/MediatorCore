@@ -11,8 +11,8 @@ internal interface IThrottlingQueueBackgroundService<TMessage>
     ValueTask EnqueueAsync(TMessage item, CancellationToken cancellationToken);
 }
 internal sealed class ThrottlingQueueBackgroundService<TMessage, TOptions>(IServiceScopeFactory serviceScopeFactory, TOptions options) :
-    IThrottlingQueueBackgroundService<TMessage>,
-    IHostedService
+    BackgroundService,
+    IThrottlingQueueBackgroundService<TMessage>
     where TMessage : IThrottlingQueueMessage
     where TOptions : IThrottlingQueueOptions, new()
 {
@@ -23,11 +23,11 @@ internal sealed class ThrottlingQueueBackgroundService<TMessage, TOptions>(IServ
     {
     }
 
-    public async Task StartAsync(CancellationToken cancellationToken)
+    protected override async Task ExecuteAsync(CancellationToken stoppingToken)
     {
-        while (!cancellationToken.IsCancellationRequested)
+        while (!stoppingToken.IsCancellationRequested)
         {
-            var (success, messages) = await queue.TryDequeueAsync(cancellationToken);
+            var (success, messages) = await queue.TryDequeueAsync(stoppingToken);
 
             if (!success)
                 continue;
@@ -36,10 +36,10 @@ internal sealed class ThrottlingQueueBackgroundService<TMessage, TOptions>(IServ
         }
     }
 
-    public Task StopAsync(CancellationToken cancellationToken)
+    public override Task StopAsync(CancellationToken cancellationToken)
     {
         queue.Dispose();
-        return Task.CompletedTask;
+        return base.StopAsync(cancellationToken);
     }
 
     private async void ProcessMessages(IEnumerable<TMessage> messages)

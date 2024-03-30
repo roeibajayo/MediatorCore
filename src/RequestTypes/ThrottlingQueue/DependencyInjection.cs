@@ -42,7 +42,7 @@ internal static class DependencyInjection
             var serviceInterface = typeof(IThrottlingQueueBackgroundService<>)
                 .MakeGenericType(messageType);
             services.AddSingleton(serviceInterface, serviceType);
-            services.AddSingleton(s => s.GetRequiredService(serviceInterface) as IHostedService);
+            services.AddSingleton(s => (IHostedService)s.GetRequiredService(serviceInterface));
 
             services.Add(new ServiceDescriptor(handlerInterface,
                 handler,

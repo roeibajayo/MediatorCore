@@ -9,14 +9,13 @@ internal interface IDebounceQueueBackgroundService<TMessage>
 {
     void Enqueue(TMessage item);
 }
-internal sealed class DebounceQueueBackgroundService<TMessage, TOptions> :
+internal sealed class DebounceQueueBackgroundService<TMessage, TOptions>(IServiceScopeFactory serviceScopeFactory, TOptions options) :
     IHostedService,
     IDebounceQueueBackgroundService<TMessage>
     where TMessage : class, IDebounceQueueMessage
     where TOptions : IDebounceQueueOptions, new()
 {
-    private readonly IServiceScopeFactory serviceScopeFactory;
-    private readonly int debounceMs;
+    private readonly int debounceMs = options.DebounceMs;
     private readonly object lockObject = new();
     private TMessage? lastItem;
     private CancellationTokenSource? cancellationTokenSource;
@@ -24,12 +23,6 @@ internal sealed class DebounceQueueBackgroundService<TMessage, TOptions> :
     public DebounceQueueBackgroundService(IServiceScopeFactory serviceScopeFactory) :
         this(serviceScopeFactory, GetOptions())
     {
-    }
-
-    public DebounceQueueBackgroundService(IServiceScopeFactory serviceScopeFactory, TOptions options)
-    {
-        this.serviceScopeFactory = serviceScopeFactory;
-        debounceMs = options.DebounceMs;
     }
 
     public void Enqueue(TMessage item)
