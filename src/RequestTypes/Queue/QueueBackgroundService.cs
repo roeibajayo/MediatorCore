@@ -10,8 +10,8 @@ internal interface IQueueBackgroundService<TMessage>
     ValueTask EnqueueAsync(TMessage item, CancellationToken cancellationToken);
 }
 internal sealed class QueueBackgroundService<TMessage, TOptions> :
-    IQueueBackgroundService<TMessage>,
-    IHostedService
+    BackgroundService,
+    IQueueBackgroundService<TMessage>
     where TMessage : IQueueMessage
     where TOptions : QueueOptions
 {
@@ -65,18 +65,12 @@ internal sealed class QueueBackgroundService<TMessage, TOptions> :
         }
     }
 
-
-    public async Task StartAsync(CancellationToken cancellationToken)
+    protected override async Task ExecuteAsync(CancellationToken cancellationToken)
     {
         await foreach (var item in queue.Reader.ReadAllAsync(cancellationToken))
         {
             await ProcessMessage(item);
         }
-    }
-
-    public Task StopAsync(CancellationToken cancellationToken)
-    {
-        return Task.CompletedTask;
     }
 
     private static TOptions GetOptions()
@@ -88,4 +82,5 @@ internal sealed class QueueBackgroundService<TMessage, TOptions> :
 
         return options;
     }
+
 }
