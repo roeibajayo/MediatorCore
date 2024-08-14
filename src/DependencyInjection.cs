@@ -28,7 +28,7 @@ public static class DependencyInjection
         var optionsInstance = new MediatorCoreOptions();
         options?.Invoke(optionsInstance);
 
-        services.TryAddSingleton<IPublisher, MessageBusPublisher>();
+        services.TryAddScoped<IPublisher, MessageBusPublisher>();
 
         var handler = typeof(THandler);
 
@@ -75,7 +75,7 @@ public static class DependencyInjection
         var optionsInstance = new MediatorCoreOptions();
         options?.Invoke(optionsInstance);
 
-        services.TryAddSingleton<IPublisher, MessageBusPublisher>();
+        services.TryAddScoped<IPublisher, MessageBusPublisher>();
 
         var assembliesToAdd = assemblies
             .Distinct()
