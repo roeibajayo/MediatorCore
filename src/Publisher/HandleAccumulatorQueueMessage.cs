@@ -9,6 +9,7 @@ internal partial class MessageBusPublisher : IPublisher
         where TMessage : IAccumulatorQueueMessage
     {
         var services = serviceProvider.GetServices<IAccumulatorQueueBackgroundService<TMessage>>();
+
         foreach (var service in services)
             await service.EnqueueAsync(message, cancellationToken);
     }

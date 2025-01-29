@@ -11,19 +11,19 @@ internal partial class MessageBusPublisher(IServiceProvider serviceProvider) : I
 
         if (message is IAccumulatorQueueMessage)
         {
-            handler.HandleAccumulatorQueueMessageAsync<TMessage>(message, cancellationToken).AsTask().Wait(cancellationToken);
+            handler.HandleAccumulatorQueueMessageAsync<TMessage>(message, cancellationToken);
             found = true;
         }
 
         if (message is IQueueMessage)
         {
-            handler.HandleQueueMessageAsync<TMessage>(message, cancellationToken).AsTask().Wait(cancellationToken);
+            handler.HandleQueueMessageAsync<TMessage>(message, cancellationToken);
             found = true;
         }
 
         if (message is IStackMessage)
         {
-            handler.HandleStackMessageAsync<TMessage>(message, cancellationToken).AsTask().Wait(cancellationToken);
+            handler.HandleStackMessageAsync<TMessage>(message, cancellationToken);
             found = true;
         }
 
@@ -35,25 +35,25 @@ internal partial class MessageBusPublisher(IServiceProvider serviceProvider) : I
 
         if (message is IRequestMessage)
         {
-            _ = handler.HandleRequestMessageAsync<TMessage>(message, cancellationToken);
+            handler.HandleRequestMessageAsync<TMessage>(message, cancellationToken);
             found = true;
         }
 
         if (message is IBubblingNotificationMessage)
         {
-            _ = handler.HandleBubblingNotificationMessageAsync<TMessage>(message, cancellationToken);
+            handler.HandleBubblingNotificationMessageAsync<TMessage>(message, cancellationToken);
             found = true;
         }
 
         if (message is INotificationMessage)
         {
-            _ = handler.HandleNotificationMessageAsync<TMessage>(message, cancellationToken);
+            handler.HandleNotificationMessageAsync<TMessage>(message, cancellationToken);
             found = true;
         }
 
         if (message is IThrottlingQueueMessage)
         {
-            handler.HandleThrottlingQueueMessageAsync<TMessage>(message, cancellationToken).AsTask().Wait(cancellationToken);
+            handler.HandleThrottlingQueueMessageAsync<TMessage>(message, cancellationToken);
             found = true;
         }
 

@@ -115,6 +115,32 @@ public class Notification : BaseUnitTest
         }
         throw new Exception("No dequeue executed");
     }
+
+    [Theory]
+    [InlineData(1)]
+    [InlineData(100)]
+    public Task PublishNotificationMessage_ReturnNoErrors_Sync(int counts)
+    {
+        //Arrange
+        var publisher = ServiceProvider.GetService<IPublisher>()!;
+        var logger = ServiceProvider.GetService<ILogger>()!;
+        var id = "1_" + Guid.NewGuid();
+
+        //Act
+        for (var i = 0; i < counts; i++)
+        {
+            publisher.Publish(new NotificationMessage(id));
+        }
+
+        //Assert
+        if (ReceivedDebugs(logger, "FirstNotification1Message: " + id) == counts &&
+            ReceivedDebugs(logger, "Notification2Message: " + id) == counts)
+        {
+            return Task.CompletedTask;
+        }
+
+        throw new Exception("No dequeue executed");
+    }
 }
 
 public record NotificationMessage(string Id) : INotificationMessage;

@@ -11,6 +11,7 @@ internal partial class MessageBusPublisher : IPublisher
             .GetServices<INotificationHandler<TMessage>>();
 
         await Task
-            .WhenAll(handlers.Select(handler => handler!.Handle(message, cancellationToken))).WaitAsync(cancellationToken);
+            .WhenAll(handlers.Select(handler => handler!.Handle(message, cancellationToken)))
+            .WaitAsync(cancellationToken);
     }
 }
