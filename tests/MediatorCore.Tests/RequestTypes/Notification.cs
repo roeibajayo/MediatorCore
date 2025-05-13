@@ -119,7 +119,7 @@ public class Notification : BaseUnitTest
     [Theory]
     [InlineData(1)]
     [InlineData(100)]
-    public Task PublishNotificationMessage_ReturnNoErrors_Sync(int counts)
+    public async Task PublishNotificationMessage_ReturnNoErrors_Sync(int counts)
     {
         //Arrange
         var publisher = ServiceProvider.GetService<IPublisher>()!;
@@ -129,14 +129,14 @@ public class Notification : BaseUnitTest
         //Act
         for (var i = 0; i < counts; i++)
         {
-            publisher.Publish(new NotificationMessage(id));
+            await publisher.PublishAsync(new NotificationMessage(id));
         }
 
         //Assert
         if (ReceivedDebugs(logger, "FirstNotification1Message: " + id) == counts &&
             ReceivedDebugs(logger, "Notification2Message: " + id) == counts)
         {
-            return Task.CompletedTask;
+            return;
         }
 
         throw new Exception("No dequeue executed");

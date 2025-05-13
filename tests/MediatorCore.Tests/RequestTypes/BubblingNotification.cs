@@ -51,7 +51,7 @@ public class BubblingNotification : BaseUnitTest
     }
 
     [Fact]
-    public async Task PublishNotBubbleMessage_ReturnNoErrorsAndDequeue()
+    public async Task PublishNotBubbleMessage_ReturnNoErrorsAndDequeueAsync()
     {
         //Arrange
         var publisher = ServiceProvider.GetService<IPublisher>()!;
@@ -59,7 +59,7 @@ public class BubblingNotification : BaseUnitTest
         var id = "2_" + Guid.NewGuid();
 
         //Act
-        publisher.Publish(new SharedBubblingNotificationMessage(id, false));
+        await publisher.PublishAsync(new SharedBubblingNotificationMessage(id, false));
 
         //Assert
         if (ReceivedDebugs(logger, "BubblingNotification1Message: " + id) == 1 &&

@@ -45,19 +45,19 @@ internal sealed class QueueBackgroundService<TMessage, TOptions> :
     private async Task ProcessMessage(TMessage item)
     {
         using var scope = serviceScopeFactory.CreateScope();
-        var handler = scope.ServiceProvider.GetService<IBaseQueueHandler<TMessage>>();
-        await ProcessMessage(handler!, 0, item);
+        var handler = scope.ServiceProvider.GetRequiredService<IBaseQueueHandler<TMessage>>();
+        await ProcessMessage(handler, 0, item);
     }
 
     private static async Task ProcessMessage(IBaseQueueHandler<TMessage> handler, int retries, TMessage item)
     {
         try
         {
-            await handler!.HandleAsync(item);
+            await handler.HandleAsync(item);
         }
         catch (Exception ex)
         {
-            var exceptionHandler = handler!.HandleExceptionAsync(item, ex, retries,
+            var exceptionHandler = handler.HandleExceptionAsync(item, ex, retries,
                 () => ProcessMessage(handler, retries + 1, item));
 
             if (exceptionHandler is not null)

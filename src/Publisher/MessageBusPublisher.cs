@@ -1,66 +1,25 @@
 ﻿using MediatorCore.Exceptions;
+using Microsoft.Extensions.DependencyInjection;
 
 namespace MediatorCore.Publisher;
 
-internal partial class MessageBusPublisher(IServiceProvider serviceProvider) : IPublisher
+internal partial class MessageBusPublisher(
+    IServiceScopeFactory serviceScopeFactory,
+    IServiceProvider serviceProvider)
+    : IPublisher
 {
-    public bool TryPublish<TMessage>(TMessage message, CancellationToken cancellationToken = default)
+    public void Publish<TMessage>(TMessage message, CancellationToken cancellationToken = default)
     {
-        dynamic handler = this;
-        var found = false;
-
-        if (message is IAccumulatorQueueMessage)
+        _ = Task.Run(async () =>
         {
-            handler.HandleAccumulatorQueueMessageAsync<TMessage>(message, cancellationToken);
-            found = true;
-        }
-
-        if (message is IQueueMessage)
-        {
-            handler.HandleQueueMessageAsync<TMessage>(message, cancellationToken);
-            found = true;
-        }
-
-        if (message is IStackMessage)
-        {
-            handler.HandleStackMessageAsync<TMessage>(message, cancellationToken);
-            found = true;
-        }
-
-        if (message is IDebounceQueueMessage)
-        {
-            handler.HandleDebounceQueueMessage<TMessage>(message);
-            found = true;
-        }
-
-        if (message is IRequestMessage)
-        {
-            handler.HandleRequestMessageAsync<TMessage>(message, cancellationToken);
-            found = true;
-        }
-
-        if (message is IBubblingNotificationMessage)
-        {
-            handler.HandleBubblingNotificationMessageAsync<TMessage>(message, cancellationToken);
-            found = true;
-        }
-
-        if (message is INotificationMessage)
-        {
-            handler.HandleNotificationMessageAsync<TMessage>(message, cancellationToken);
-            found = true;
-        }
-
-        if (message is IThrottlingQueueMessage)
-        {
-            handler.HandleThrottlingQueueMessageAsync<TMessage>(message, cancellationToken);
-            found = true;
-        }
-
-        return found;
+            using var scope = serviceScopeFactory.CreateScope();
+            var serviceProvider = scope.ServiceProvider;
+            var handler = new MessageBusPublisher(serviceScopeFactory, serviceProvider);
+            await handler.PublishAsync(message, cancellationToken);
+        }, cancellationToken);
     }
 
-    public async Task PublishAsync<TMessage>(TMessage message, CancellationToken cancellationToken = default)
+    public async Task<bool> TryPublishAsync<TMessage>(TMessage message, CancellationToken cancellationToken = default)
     {
         dynamic handler = this;
         var found = false;
@@ -112,6 +71,13 @@ internal partial class MessageBusPublisher(IServiceProvider serviceProvider) : I
             await handler.HandleThrottlingQueueMessageAsync<TMessage>(message, cancellationToken);
             found = true;
         }
+
+        return found;
+    }
+
+    public async Task PublishAsync<TMessage>(TMessage message, CancellationToken cancellationToken = default)
+    {
+        var found = await TryPublishAsync(message, cancellationToken);
 
         if (!found)
         {

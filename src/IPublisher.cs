@@ -21,7 +21,7 @@ public interface IPublisher
     /// <param name="message">Request message.</param>
     /// <param name="cancellationToken">Optional cancellation token.</param>
     /// <returns>returns True if handlers exists, otherwise False</returns>
-    bool TryPublish<TMessage>(TMessage message, CancellationToken cancellationToken = default);
+    Task<bool> TryPublishAsync<TMessage>(TMessage message, CancellationToken cancellationToken = default);
 
     /// <summary>
     /// Asynchronously send a message to multiple handlers
@@ -29,13 +29,7 @@ public interface IPublisher
     /// <param name="message">Request message.</param>
     /// <param name="cancellationToken">Optional cancellation token.</param>
     /// <exception cref="NoRegisteredHandlerException" />
-    void Publish<TMessage>(TMessage message, CancellationToken cancellationToken = default)
-    {
-        if (!TryPublish(message, cancellationToken))
-        {
-            NoRegisteredHandlerException.Throw<TMessage>();
-        }
-    }
+    void Publish<TMessage>(TMessage message, CancellationToken cancellationToken = default);
 
     /// <summary>
     /// Asynchronously send a message to multiple handlers and wait for all handlers to complete.
